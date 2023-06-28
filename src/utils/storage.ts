@@ -1,7 +1,11 @@
 enum StorageKey {
-
+  account = 'account'
 }
 
-export const setTimestamp = (value: string) => {
-  window.localStorage.setItem('test', value)
+export const saveEncryptedAccount = (value: string) => {
+  window.localStorage.setItem(StorageKey.account, value)
+}
+
+export const getEncryptedAccount = () => {
+  return window.localStorage.getItem(StorageKey.account)
 }
