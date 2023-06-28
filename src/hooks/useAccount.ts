@@ -9,6 +9,7 @@ function useAccount() {
   const secret = searchParams.get('secret') || ''
   const username = searchParams.get('username') || ''
   const [userAccount, setUserAccount] = useState<any>()
+  const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
     const decodeAccount = async () => {
@@ -21,11 +22,12 @@ function useAccount() {
           setUserAccount(decodedData)
         }
       }
+      setIsLoaded(true)
     }
     decodeAccount()
   }, [secret, username])
 
-  return userAccount
+  return [userAccount, isLoaded]
 }
 
 export default useAccount

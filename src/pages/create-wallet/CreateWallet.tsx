@@ -48,7 +48,7 @@ export const CreateWallet = () => {
     const encrypted = await web3.eth.accounts.encrypt(account.privateKey, password)
     // const decrypted = await web3.eth.accounts.decrypt(JSON.stringify(encrypted), secret)
     saveEncryptedAccount(JSON.stringify(encrypted))
-    navigate(`/account?secret=${secret}&username=${username}`)
+    navigate(`/?secret=${secret}&username=${username}`)
   }
 
   return <Box pad={'8px'}>

@@ -8,7 +8,7 @@ import config from "../../config";
 const { Text } = Typography
 
 export const UserAccount = () => {
-  const account = useAccount()
+  const [account] = useAccount()
 
   const [userBalance, setUserBalance] = useState('0')
 
