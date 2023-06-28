@@ -10,7 +10,6 @@ export const AppRoutes = () => {
   const secret = urlParams.get('secret') || ''
   const username = urlParams.get('username') || ''
   const account = useAccount()
-  console.log('account', account)
 
   useEffect(() => {
     const initialRedirects = () => {
