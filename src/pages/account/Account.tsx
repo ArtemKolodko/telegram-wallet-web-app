@@ -7,8 +7,6 @@ import config from "../../config";
 
 const { Text } = Typography
 
-const web3 = new Web3(config.rpcUrl)
-
 export const UserAccount = () => {
   const account = useAccount()
 
@@ -18,6 +16,7 @@ export const UserAccount = () => {
     const getUserData = async () => {
       try {
         if(account) {
+          const web3 = new Web3(config.rpcUrl)
           const data = await web3.eth.getBalance(account?.address)
           setUserBalance(Web3.utils.fromWei(data, 'ether'))
         }
