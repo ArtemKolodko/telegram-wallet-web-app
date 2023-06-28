@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {Grommet} from 'grommet';
 import {BrowserRouter, Routes, Route} from "react-router-dom";
 import {CreateWallet} from "./pages/create-wallet/CreateWallet";

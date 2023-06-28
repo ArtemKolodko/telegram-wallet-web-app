@@ -21,7 +21,7 @@ export const CreateWallet = () => {
   const [qrCode, setQrCode] = useState('')
   const [isChecked, setIsChecked] = useState(false)
   const [isPKVisible, setPKVisible] = useState(false)
-  const [account, setAccount] = useState(web3.eth.accounts.create())
+  const [account] = useState(web3.eth.accounts.create())
 
   useEffect(() => {
     const generateToken = async () => {
