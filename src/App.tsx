@@ -1,16 +1,12 @@
 import React from 'react';
 import {Grommet} from 'grommet';
-import {BrowserRouter, Routes, Route} from "react-router-dom";
-import {CreateWallet} from "./pages/create-wallet/CreateWallet";
-import {UserAccount} from "./pages/account/Account";
+import {BrowserRouter} from "react-router-dom";
+import {AppRoutes} from "./Routes";
 
 function App() {
   return <Grommet full>
     <BrowserRouter>
-      <Routes>
-        <Route index path={'account'} element={<UserAccount />} />
-        <Route path={'create-wallet'} element={<CreateWallet />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   </Grommet>
 }

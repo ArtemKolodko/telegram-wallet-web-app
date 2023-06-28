@@ -1,5 +1,5 @@
 enum StorageKey {
-  account = 'account'
+  account = 'tg_wallet_account'
 }
 
 export const saveEncryptedAccount = (value: string) => {
