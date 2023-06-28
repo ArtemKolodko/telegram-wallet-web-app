@@ -23,6 +23,7 @@ export const AppRoutes = () => {
   return <Routes>
     <Route
       index
+      path={'account'}
       element={<UserAccount />}
     />
     <Route path={'create-wallet'} element={<CreateWallet />} />
