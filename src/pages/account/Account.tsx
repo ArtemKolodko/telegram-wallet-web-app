@@ -4,11 +4,18 @@ import {Button, Typography} from "antd";
 import useAccount from "../../hooks/useAccount";
 import Web3 from "web3";
 import config from "../../config";
+import {deleteAccount} from "../../utils/storage";
+import {useNavigate} from "react-router-dom";
 
 const { Text } = Typography
 
 export const UserAccount = () => {
   const [account] = useAccount()
+  const navigate = useNavigate()
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const secret = urlParams.get('secret') || ''
+  const username = urlParams.get('username') || ''
 
   const [userBalance, setUserBalance] = useState('0')
 
@@ -31,12 +38,9 @@ export const UserAccount = () => {
     return null
   }
 
-  const onSendDataClicked = () => {
-    window.Telegram.WebApp.sendData('123')
-  }
-
-  const onCloseClicked = () => {
-    window.Telegram.WebApp.close()
+  const onDeleteClicked = () => {
+    deleteAccount()
+    navigate(`/create-wallet?secret=${secret}&username=${username}`)
   }
 
   return <Box pad={'16px'}>
@@ -50,8 +54,7 @@ export const UserAccount = () => {
     <Box margin={{ top: '32px' }}>
       <Box gap={'16px'}>
         <Button type={'primary'}>Send ONE</Button>
-        <Button type={'primary'} onClick={onSendDataClicked}>Send data to bot</Button>
-        <Button type={'primary'} onClick={onCloseClicked}>Close wallet</Button>
+        <Button danger onClick={onDeleteClicked}>Delete account</Button>
       </Box>
     </Box>
   </Box>

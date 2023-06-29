@@ -46,8 +46,8 @@ export const CreateWallet = () => {
   const saveUserAccount = async () => {
     const password = getAccountPassword(secret, username)
     const encrypted = await web3.eth.accounts.encrypt(account.privateKey, password)
-    // const decrypted = await web3.eth.accounts.decrypt(JSON.stringify(encrypted), secret)
     saveEncryptedAccount(JSON.stringify(encrypted))
+    window.Telegram.WebApp.sendData(JSON.stringify({ type: 'register_account', address: account.address }))
     navigate(`/?secret=${secret}&username=${username}`)
   }
 
@@ -57,7 +57,7 @@ export const CreateWallet = () => {
     </Box>
     <Box>
       <Box align={'center'}>
-        <Image width={'200px'} height={'200px'} src={qrCode} />
+        <Image width={'200px'} height={'200px'} src={qrCode} preview={false} />
       </Box>
       <Box>
         <Text style={{ fontSize: 'x-small' }}>Address: {account.address}</Text>

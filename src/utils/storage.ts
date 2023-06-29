@@ -9,3 +9,7 @@ export const saveEncryptedAccount = (value: string) => {
 export const getEncryptedAccount = () => {
   return window.localStorage.getItem(StorageKey.account)
 }
+
+export const deleteAccount = () => {
+  window.localStorage.removeItem(StorageKey.account)
+}
