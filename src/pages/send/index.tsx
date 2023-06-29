@@ -2,7 +2,6 @@ import React from 'react'
 import {Box} from "grommet";
 import {useNavigate} from "react-router-dom";
 import {Button, Input, Typography} from "antd";
-import useAccount from "../../hooks/useAccount";
 import {AccountInfo} from "../../components/Account";
 const { Text } = Typography
 
@@ -15,7 +14,6 @@ const Menu = () => {
 }
 
 const SendOne = () => {
-  const { account } = useAccount()
   const onSendClicked = () => {
 
   }
