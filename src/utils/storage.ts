@@ -1,5 +1,6 @@
 enum StorageKey {
-  account = 'tg_wallet_account'
+  account = 'tg_wallet_account',
+  totpToken = 'tg_wallet_last_totp'
 }
 
 export const saveEncryptedAccount = (value: string) => {
@@ -12,4 +13,12 @@ export const getEncryptedAccount = () => {
 
 export const deleteAccount = () => {
   window.localStorage.removeItem(StorageKey.account)
+}
+
+export const saveTotpToken = (token: string) => {
+  window.localStorage.setItem(StorageKey.totpToken, token)
+}
+
+export const getTotpToken = () => {
+  return window.localStorage.getItem(StorageKey.totpToken)
 }

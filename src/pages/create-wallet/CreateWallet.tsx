@@ -1,12 +1,11 @@
 import React, {useEffect, useState} from 'react'
 import {Box} from "grommet";
 import {Button, Typography, Image, Checkbox} from "antd";
-import * as OTPAuth from "otpauth";
 import { toDataURL } from 'qrcode'
 import Web3 from 'web3'
 import {useNavigate, useSearchParams} from "react-router-dom";
-import {saveEncryptedAccount} from "../../utils/storage";
-import {getAccountPassword} from "../../utils/account";
+import {saveEncryptedAccount, saveTotpToken} from "../../utils/storage";
+import {generateTOTP, getAccountPassword} from "../../utils/account";
 import * as paymentsApi from "../../api/payments";
 
 const { Text } = Typography;
@@ -26,19 +25,11 @@ export const CreateWallet = () => {
 
   useEffect(() => {
     const generateToken = async () => {
-      let totp = new OTPAuth.TOTP({
-        issuer: "Harmony One Wallet",
-        label: userId,
-        algorithm: "SHA1",
-        digits: 6,
-        period: 60,
-        secret,
-      });
-
-      let token = totp.generate();
-      console.log('token', token)
+      const totp = generateTOTP(secret, userId)
       let uri = totp.toString();
       const qr = await toDataURL(uri)
+      const token = totp.generate();
+      saveTotpToken(token)
       setQrCode(qr)
     }
     generateToken()
