@@ -16,10 +16,14 @@ function useAccount() {
       const password = getAccountPassword(secret, userId)
       const accData = getEncryptedAccount()
       if(accData) {
-        const web3 = new Web3()
-        const decodedData = await web3.eth.accounts.decrypt(JSON.parse(accData), password)
-        if(decodedData) {
-          setUserAccount(decodedData)
+        try {
+          const web3 = new Web3()
+          const decodedData = await web3.eth.accounts.decrypt(JSON.parse(accData), password)
+          if(decodedData) {
+            setUserAccount(decodedData)
+          }
+        } catch (e) {
+          console.log('Cannot decrypt account', e)
         }
       }
       setIsLoaded(true)
