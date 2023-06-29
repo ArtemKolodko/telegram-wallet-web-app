@@ -6,6 +6,7 @@ import Web3 from "web3";
 import config from "../../config";
 import {deleteAccount} from "../../utils/storage";
 import {useNavigate} from "react-router-dom";
+import {updateUserAddress} from "../../api/webApp";
 
 const { Text } = Typography
 
@@ -40,6 +41,7 @@ export const UserAccount = () => {
 
   const onDeleteClicked = () => {
     deleteAccount()
+    updateUserAddress('')
     navigate(`/create-wallet?secret=${secret}&username=${username}`)
   }
 

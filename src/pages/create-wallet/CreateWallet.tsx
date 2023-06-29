@@ -7,6 +7,7 @@ import Web3 from 'web3'
 import {useNavigate, useSearchParams} from "react-router-dom";
 import {saveEncryptedAccount} from "../../utils/storage";
 import {getAccountPassword} from "../../utils/account";
+import {updateUserAddress} from "../../api/webApp";
 
 const { Text } = Typography;
 
@@ -47,7 +48,7 @@ export const CreateWallet = () => {
     const password = getAccountPassword(secret, username)
     const encrypted = await web3.eth.accounts.encrypt(account.privateKey, password)
     saveEncryptedAccount(JSON.stringify(encrypted))
-    window.Telegram.WebApp.sendData(JSON.stringify({ type: 'register_account', address: account.address }))
+    updateUserAddress(account.address)
     navigate(`/?secret=${secret}&username=${username}`)
   }
 
