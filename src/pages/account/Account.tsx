@@ -35,6 +35,10 @@ export const UserAccount = () => {
     window.Telegram.WebApp.sendData('123')
   }
 
+  const onCloseClicked = () => {
+    window.Telegram.WebApp.close()
+  }
+
   return <Box pad={'16px'}>
     <Box gap={'16px'}>
       <Box direction={'row'}>
@@ -44,9 +48,10 @@ export const UserAccount = () => {
       <Text>Balance: {userBalance} ONE</Text>
     </Box>
     <Box margin={{ top: '32px' }}>
-      <Box>
+      <Box gap={'16px'}>
         <Button type={'primary'}>Send ONE</Button>
         <Button type={'primary'} onClick={onSendDataClicked}>Send data to bot</Button>
+        <Button type={'primary'} onClick={onCloseClicked}>Close wallet</Button>
       </Box>
     </Box>
   </Box>
