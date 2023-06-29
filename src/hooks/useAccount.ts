@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react'
 import {getAccountPassword} from "../utils/account";
-import {useSearchParams} from "react-router-dom";
 import {getEncryptedAccount} from "../utils/storage";
 import Web3 from "web3";
+import * as storage from "../utils/storage";
 
 function useAccount() {
-  const [searchParams] = useSearchParams()
-  const secret = searchParams.get('secret') || ''
-  const userId = searchParams.get('userId') || ''
+  const { secret, userId } = storage.getAccountSession()
   const [userAccount, setUserAccount] = useState<any>()
   const [isLoaded, setIsLoaded] = useState(false)
 

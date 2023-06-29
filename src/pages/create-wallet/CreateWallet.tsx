@@ -3,10 +3,11 @@ import {Box} from "grommet";
 import {Button, Typography, Image, Checkbox} from "antd";
 import { toDataURL } from 'qrcode'
 import Web3 from 'web3'
-import {useNavigate, useSearchParams} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {saveEncryptedAccount, saveTotpToken} from "../../utils/storage";
 import {generateTOTP, getAccountPassword} from "../../utils/account";
 import * as paymentsApi from "../../api/payments";
+import * as storage from "../../utils/storage";
 
 const { Text } = Typography;
 
@@ -14,9 +15,7 @@ const web3 = new Web3()
 
 export const CreateWallet = () => {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const secret = searchParams.get('secret') || ''
-  const userId = searchParams.get('userId') || ''
+  const { secret, userId } = storage.getAccountSession()
 
   const [qrCode, setQrCode] = useState('')
   const [isChecked, setIsChecked] = useState(false)
@@ -46,7 +45,7 @@ export const CreateWallet = () => {
       console.log('Cannot create account:', e)
     }
 
-    navigate(`/?secret=${secret}&userId=${userId}`)
+    navigate(`/`)
   }
 
   return <Box pad={'8px'}>

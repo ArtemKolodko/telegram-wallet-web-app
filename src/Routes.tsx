@@ -3,45 +3,56 @@ import {Route, Routes, useNavigate} from "react-router-dom";
 import {UserAccount} from "./pages/account/Account";
 import {CreateWallet} from "./pages/create-wallet/CreateWallet";
 import useAccount from "./hooks/useAccount";
-import {getTotpToken, saveTotpToken} from "./utils/storage";
+import * as storage from "./utils/storage";
 import {TOTP} from "./pages/totp/totp";
 import {generateTOTP} from "./utils/account";
+import {getAccountSession} from "./utils/storage";
 
 export const AppRoutes = () => {
   const navigate = useNavigate()
+  const accountSession = getAccountSession()
   const urlParams = new URLSearchParams(window.location.search);
-  const secret = urlParams.get('secret') || ''
-  const userId = urlParams.get('userId') || ''
+  const secret = accountSession.secret || urlParams.get('secret') || ''
+  const userId = accountSession.userId || urlParams.get('userId') || ''
   const [account, isAccountLoaded] = useAccount()
 
-  const [storageTotp, setStorageTotp] = useState(getTotpToken() || '')
+  const [storageTotp, setStorageTotp] = useState(storage.getTotpToken() || '')
   const [currentTotp, setCurrentTotp] = useState('')
 
   useEffect(() => {
-    if(storageTotp) {
+    if(secret && userId) {
+      storage.setAccountSession(JSON.stringify({ secret, userId }))
+    }
+  }, [secret, userId])
+
+  useEffect(() => {
+    const updateCurrentTotp = () => {
       const totp = generateTOTP(secret, userId)
       const totpValue = totp.generate()
       setCurrentTotp(totpValue)
     }
-  }, [storageTotp])
+    if(secret && userId) {
+      setInterval(() => {
+        updateCurrentTotp()
+      }, 1000)
+      updateCurrentTotp()
+    }
+  }, [secret, userId])
 
   useEffect(() => {
     const initialRedirects = () => {
       if(isAccountLoaded && !account) {
-        navigate(`/create-wallet?secret=${secret}&userId=${userId}`)
+        navigate(`/create-wallet`)
       }
     }
     initialRedirects()
   }, [isAccountLoaded, account, navigate, secret, userId])
 
   if(storageTotp && currentTotp && currentTotp !== storageTotp) {
-    const onChangeTotp = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.trim()
-      console.log('currentTotp', currentTotp)
-      console.log('value', value)
-      if(currentTotp === value) {
-        saveTotpToken(value)
-        setStorageTotp(value)
+    const onChangeTotp = (value: number | null) => {
+      if(+currentTotp === value) {
+        storage.saveTotpToken(value.toString())
+        setStorageTotp(value.toString())
       }
     }
     return <TOTP onChange={onChangeTotp} />

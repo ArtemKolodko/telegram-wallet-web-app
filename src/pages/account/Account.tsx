@@ -4,7 +4,7 @@ import {Button, Typography} from "antd";
 import useAccount from "../../hooks/useAccount";
 import Web3 from "web3";
 import config from "../../config";
-import {deleteAccount} from "../../utils/storage";
+import * as storage from "../../utils/storage";
 import {useNavigate} from "react-router-dom";
 import {deleteWallet, getWallets} from "../../api/payments";
 
@@ -14,9 +14,7 @@ export const UserAccount = () => {
   const [account] = useAccount()
   const navigate = useNavigate()
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const secret = urlParams.get('secret') || ''
-  const userId = urlParams.get('userId') || ''
+  const { userId } = storage.getAccountSession()
 
   const [userBalance, setUserBalance] = useState('0')
 
@@ -40,7 +38,7 @@ export const UserAccount = () => {
   }
 
   const onDeleteClicked = async () => {
-    deleteAccount()
+    storage.deleteAccount()
 
     try {
       const wallets = await getWallets(userId, account.address)
@@ -51,16 +49,19 @@ export const UserAccount = () => {
     } catch (e) {
       console.log('Cannot delete wallet', e)
     }
-    navigate(`/create-wallet?secret=${secret}&userId=${userId}`)
+    navigate(`/create-wallet`)
   }
 
   return <Box pad={'16px'}>
     <Box gap={'16px'}>
-      <Box direction={'row'}>
-        <Text>User address:</Text>
+      <Box>
+        <Text type={'secondary'}>Address</Text>
         <Text copyable={true}>{account.address}</Text>
       </Box>
-      <Text>Balance: {userBalance} ONE</Text>
+      <Box>
+        <Text type={'secondary'}>Balance</Text>
+        <Text>{userBalance} ONE</Text>
+      </Box>
     </Box>
     <Box margin={{ top: '32px' }}>
       <Box gap={'16px'}>
