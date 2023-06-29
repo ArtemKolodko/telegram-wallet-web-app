@@ -31,6 +31,10 @@ export const UserAccount = () => {
     return null
   }
 
+  const onSendDataClicked = () => {
+    window.Telegram.WebApp.sendData('123')
+  }
+
   return <Box pad={'16px'}>
     <Box gap={'16px'}>
       <Box direction={'row'}>
@@ -41,7 +45,8 @@ export const UserAccount = () => {
     </Box>
     <Box margin={{ top: '32px' }}>
       <Box>
-        <Button type={'primary'} disabled={true}>Send (Work in progress)</Button>
+        <Button type={'primary'}>Send ONE</Button>
+        <Button type={'primary'} onClick={onSendDataClicked}>Send data to bot</Button>
       </Box>
     </Box>
   </Box>
