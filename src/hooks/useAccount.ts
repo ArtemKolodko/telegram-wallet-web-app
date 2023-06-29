@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import {getAccountPassword} from "../utils/account";
+import {generateTOTP, getAccountPassword} from "../utils/account";
 import {getEncryptedAccount} from "../utils/storage";
 import Web3 from "web3";
 import * as storage from "../utils/storage";
@@ -8,6 +8,22 @@ function useAccount() {
   const { secret, userId } = storage.getAccountSession()
   const [userAccount, setUserAccount] = useState<any>()
   const [isLoaded, setIsLoaded] = useState(false)
+  const [currentTotp, setCurrentTotp] = useState(generateTOTP(secret, userId).generate())
+  const [isLoggedIn, setLoggedIn] = useState(storage.getTotpToken() === currentTotp)
+
+  console.log('currentTotp', currentTotp)
+
+  useEffect(() => {
+    const getCurrentTotp = () => generateTOTP(secret, userId).generate()
+    const updateTotp = () => {
+      setCurrentTotp(getCurrentTotp())
+    }
+
+    if(secret && userId) {
+      setInterval(updateTotp, 1000)
+    }
+    updateTotp()
+  }, [secret, userId])
 
   useEffect(() => {
     const decodeAccount = async () => {
@@ -29,7 +45,13 @@ function useAccount() {
     decodeAccount()
   }, [secret, userId])
 
-  return [userAccount, isLoaded]
+  return {
+    account: userAccount,
+    isLoaded,
+    isLoggedIn,
+    setLoggedIn,
+    currentTotp
+  }
 }
 
 export default useAccount

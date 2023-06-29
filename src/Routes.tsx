@@ -1,12 +1,12 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect} from 'react'
 import {Route, Routes, useNavigate} from "react-router-dom";
 import {UserAccount} from "./pages/account/Account";
 import {CreateWallet} from "./pages/create-wallet/CreateWallet";
 import useAccount from "./hooks/useAccount";
 import * as storage from "./utils/storage";
 import {TOTP} from "./pages/totp/totp";
-import {generateTOTP} from "./utils/account";
 import {getAccountSession} from "./utils/storage";
+import SendOne from "./pages/send";
 
 export const AppRoutes = () => {
   const navigate = useNavigate()
@@ -14,28 +14,12 @@ export const AppRoutes = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const secret = accountSession.secret || urlParams.get('secret') || ''
   const userId = accountSession.userId || urlParams.get('userId') || ''
-  const [account, isAccountLoaded] = useAccount()
 
-  const [storageTotp, setStorageTotp] = useState(storage.getTotpToken() || '')
-  const [currentTotp, setCurrentTotp] = useState('')
+  const { account, isLoaded: isAccountLoaded, isLoggedIn, currentTotp, setLoggedIn } = useAccount()
 
   useEffect(() => {
     if(secret && userId) {
       storage.setAccountSession(JSON.stringify({ secret, userId }))
-    }
-  }, [secret, userId])
-
-  useEffect(() => {
-    const updateCurrentTotp = () => {
-      const totp = generateTOTP(secret, userId)
-      const totpValue = totp.generate()
-      setCurrentTotp(totpValue)
-    }
-    if(secret && userId) {
-      setInterval(() => {
-        updateCurrentTotp()
-      }, 1000)
-      updateCurrentTotp()
     }
   }, [secret, userId])
 
@@ -48,11 +32,11 @@ export const AppRoutes = () => {
     initialRedirects()
   }, [isAccountLoaded, account, navigate, secret, userId])
 
-  if(storageTotp && currentTotp && currentTotp !== storageTotp) {
+  if(!isLoggedIn) {
     const onChangeTotp = (value: number | null) => {
       if(+currentTotp === value) {
         storage.saveTotpToken(value.toString())
-        setStorageTotp(value.toString())
+        setLoggedIn(true)
       }
     }
     return <TOTP onChange={onChangeTotp} />
@@ -65,5 +49,6 @@ export const AppRoutes = () => {
       element={<UserAccount />}
     />
     <Route path={'create-wallet'} element={<CreateWallet />} />
+    <Route path={'send'} element={<SendOne />} />
   </Routes>
 }

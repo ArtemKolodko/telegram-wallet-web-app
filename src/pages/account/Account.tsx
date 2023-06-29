@@ -1,37 +1,17 @@
-import React, {useEffect, useState} from 'react'
+import React from 'react'
 import {Box} from "grommet";
-import {Button, Typography} from "antd";
+import {Button} from "antd";
 import useAccount from "../../hooks/useAccount";
-import Web3 from "web3";
-import config from "../../config";
 import * as storage from "../../utils/storage";
 import {useNavigate} from "react-router-dom";
 import {deleteWallet, getWallets} from "../../api/payments";
-
-const { Text } = Typography
+import {AccountInfo} from "../../components/Account";
 
 export const UserAccount = () => {
-  const [account] = useAccount()
+  const { account } = useAccount()
   const navigate = useNavigate()
 
   const { userId } = storage.getAccountSession()
-
-  const [userBalance, setUserBalance] = useState('0')
-
-  useEffect(() => {
-    const getUserData = async () => {
-      try {
-        if(account) {
-          const web3 = new Web3(config.rpcUrl)
-          const data = await web3.eth.getBalance(account?.address)
-          setUserBalance(Web3.utils.fromWei(data, 'ether'))
-        }
-      } catch(e) {
-        console.log('Cannot get user balance', e)
-      }
-    }
-    getUserData()
-  }, [account])
 
   if(!account) {
     return null
@@ -52,20 +32,15 @@ export const UserAccount = () => {
     navigate(`/create-wallet`)
   }
 
+  const onSendClicked = () => {
+    navigate('/send')
+  }
+
   return <Box pad={'16px'}>
-    <Box gap={'16px'}>
-      <Box>
-        <Text type={'secondary'}>Address</Text>
-        <Text copyable={true}>{account.address}</Text>
-      </Box>
-      <Box>
-        <Text type={'secondary'}>Balance</Text>
-        <Text>{userBalance} ONE</Text>
-      </Box>
-    </Box>
+    <AccountInfo />
     <Box margin={{ top: '32px' }}>
       <Box gap={'16px'}>
-        <Button type={'primary'}>Send ONE</Button>
+        <Button type={'primary'} onClick={onSendClicked}>Send ONE</Button>
         <Button danger onClick={onDeleteClicked}>Delete account</Button>
       </Box>
     </Box>
