@@ -6,7 +6,7 @@ import Web3 from "web3";
 import config from "../../config";
 import {deleteAccount} from "../../utils/storage";
 import {useNavigate} from "react-router-dom";
-import {updateUserAddress} from "../../api/webApp";
+import {deleteWallet, getWallets} from "../../api/payments";
 
 const { Text } = Typography
 
@@ -16,7 +16,7 @@ export const UserAccount = () => {
 
   const urlParams = new URLSearchParams(window.location.search);
   const secret = urlParams.get('secret') || ''
-  const username = urlParams.get('username') || ''
+  const userId = urlParams.get('userId') || ''
 
   const [userBalance, setUserBalance] = useState('0')
 
@@ -39,10 +39,19 @@ export const UserAccount = () => {
     return null
   }
 
-  const onDeleteClicked = () => {
+  const onDeleteClicked = async () => {
     deleteAccount()
-    updateUserAddress('')
-    navigate(`/create-wallet?secret=${secret}&username=${username}`)
+
+    try {
+      const wallets = await getWallets(userId, account.address)
+      if(wallets.items.length > 0) {
+        const wallet = wallets.items[0]
+        await deleteWallet(wallet.id)
+      }
+    } catch (e) {
+      console.log('Cannot delete wallet', e)
+    }
+    navigate(`/create-wallet?secret=${secret}&userId=${userId}`)
   }
 
   return <Box pad={'16px'}>

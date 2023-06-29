@@ -7,13 +7,13 @@ import Web3 from "web3";
 function useAccount() {
   const [searchParams] = useSearchParams()
   const secret = searchParams.get('secret') || ''
-  const username = searchParams.get('username') || ''
+  const userId = searchParams.get('userId') || ''
   const [userAccount, setUserAccount] = useState<any>()
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
     const decodeAccount = async () => {
-      const password = getAccountPassword(secret, username)
+      const password = getAccountPassword(secret, userId)
       const accData = getEncryptedAccount()
       if(accData) {
         const web3 = new Web3()
@@ -25,7 +25,7 @@ function useAccount() {
       setIsLoaded(true)
     }
     decodeAccount()
-  }, [secret, username])
+  }, [secret, userId])
 
   return [userAccount, isLoaded]
 }

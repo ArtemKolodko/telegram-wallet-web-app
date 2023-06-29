@@ -7,7 +7,7 @@ import Web3 from 'web3'
 import {useNavigate, useSearchParams} from "react-router-dom";
 import {saveEncryptedAccount} from "../../utils/storage";
 import {getAccountPassword} from "../../utils/account";
-import {updateUserAddress} from "../../api/webApp";
+import * as paymentsApi from "../../api/payments";
 
 const { Text } = Typography;
 
@@ -17,7 +17,7 @@ export const CreateWallet = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const secret = searchParams.get('secret') || ''
-  const username = searchParams.get('username') || ''
+  const userId = searchParams.get('userId') || ''
 
   const [qrCode, setQrCode] = useState('')
   const [isChecked, setIsChecked] = useState(false)
@@ -28,7 +28,7 @@ export const CreateWallet = () => {
     const generateToken = async () => {
       let totp = new OTPAuth.TOTP({
         issuer: "Harmony One Wallet",
-        label: username,
+        label: userId,
         algorithm: "SHA1",
         digits: 6,
         period: 60,
@@ -42,14 +42,20 @@ export const CreateWallet = () => {
       setQrCode(qr)
     }
     generateToken()
-  }, [secret, username])
+  }, [secret, userId])
 
   const saveUserAccount = async () => {
-    const password = getAccountPassword(secret, username)
+    const password = getAccountPassword(secret, userId)
     const encrypted = await web3.eth.accounts.encrypt(account.privateKey, password)
     saveEncryptedAccount(JSON.stringify(encrypted))
-    updateUserAddress(account.address)
-    navigate(`/?secret=${secret}&username=${username}`)
+
+    try {
+      await paymentsApi.createWallet(userId, account.address)
+    } catch (e) {
+      console.log('Cannot create account:', e)
+    }
+
+    navigate(`/?secret=${secret}&userId=${userId}`)
   }
 
   return <Box pad={'8px'}>
@@ -74,7 +80,7 @@ export const CreateWallet = () => {
         </Box>
       </Box>
     </Box>
-    {(secret && username) &&
+    {(secret && userId) &&
         <Box align={'center'} margin={{ top: 'medium' }}>
             <Box width={'420px'}>
                 <Checkbox onChange={(e) => setIsChecked(e.target.checked)}>
@@ -92,10 +98,10 @@ export const CreateWallet = () => {
             </Box>
         </Box>
     }
-    {(!secret || !username) &&
+    {(!secret || !userId) &&
         <Box>
             <Text style={{ fontWeight: 'bold'}}>
-                Cannot complete registration: no secret or telegram username provided. Try to open web app again.
+                Cannot complete registration: no secret or telegram userId provided. Try to open web app again.
             </Text>
         </Box>
     }

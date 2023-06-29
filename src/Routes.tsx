@@ -8,17 +8,17 @@ export const AppRoutes = () => {
   const navigate = useNavigate()
   const urlParams = new URLSearchParams(window.location.search);
   const secret = urlParams.get('secret') || ''
-  const username = urlParams.get('username') || ''
+  const userId = urlParams.get('userId') || ''
   const [account, isAccountLoaded] = useAccount()
 
   useEffect(() => {
     const initialRedirects = () => {
       if(isAccountLoaded && !account) {
-        navigate(`/create-wallet?secret=${secret}&username=${username}`)
+        navigate(`/create-wallet?secret=${secret}&userId=${userId}`)
       }
     }
     initialRedirects()
-  }, [isAccountLoaded, account, navigate, secret, username])
+  }, [isAccountLoaded, account, navigate, secret, userId])
 
   return <Routes>
     <Route

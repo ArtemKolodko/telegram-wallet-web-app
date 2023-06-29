@@ -1,3 +1,3 @@
-export const getAccountPassword = (secret: string, username: string) => {
-  return `${secret}_${username}`
+export const getAccountPassword = (secret: string, userId: string) => {
+  return `${secret}_${userId}`
 }
