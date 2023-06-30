@@ -18,6 +18,7 @@ export const TOTP = observer(() => {
     setValue(v)
     if(v && v.toString() === currentTotp) {
       storage.saveTotpToken(v.toString())
+      authStore.setLoggedIn(true)
       navigate('/')
     }
   }
