@@ -10,7 +10,7 @@ const { Text } = Typography
 export const AccountInfo = () => {
   const { account } = useAccount()
   const [userBalance, setUserBalance] = useState('0')
-
+  const [isPKVisible, setPKVisible] = useState(false)
 
   useEffect(() => {
     const getUserData = async () => {
@@ -31,12 +31,22 @@ export const AccountInfo = () => {
 
   return <Box gap={'16px'}>
     <Box>
-      <Text type={'secondary'}>Address</Text>
-      <Text copyable={true}>{account && account.address}</Text>
+      <Text type={'secondary'} style={{ fontSize: 'small' }}>Address</Text>
+      <Text copyable={true} style={{ fontSize: 'small' }}>{account && account.address}</Text>
+      <Box direction={'row'}>
+        <Box>
+          <Text underline={true} style={{ fontSize: 'small' }} onClick={() => setPKVisible(!isPKVisible)}>
+            {isPKVisible ? 'Hide' : 'Show'} private key
+          </Text>
+          {isPKVisible &&
+              <Text style={{ fontSize: 'small' }}>{account.privateKey}</Text>
+          }
+        </Box>
+      </Box>
     </Box>
     <Box>
-      <Text type={'secondary'}>Balance</Text>
-      <Text>{userBalance} ONE</Text>
+      <Text type={'secondary'} style={{ fontSize: 'small' }}>Balance</Text>
+      <Text style={{ fontSize: 'small' }}>{userBalance} ONE</Text>
     </Box>
   </Box>
 }

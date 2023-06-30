@@ -20,8 +20,12 @@ class AuthStore {
   }
 
   private updateTotp () {
-    this.currentTotp = generateTOTP(this.secret, this.userId).generate()
-    console.log('current totp:', this.currentTotp)
+    const totp = generateTOTP(this.secret, this.userId)
+    this.currentTotp = totp.generate()
+  }
+
+  get isAccountCreated() {
+    return !!storage.getEncryptedAccount()
   }
 
   init(secret: string, userId: string) {
