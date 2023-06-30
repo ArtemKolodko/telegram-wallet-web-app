@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import {Box} from "grommet";
 import {useNavigate} from "react-router-dom";
-import {Button, Input, InputNumber, Typography} from "antd";
+import {Button, Input, InputNumber, Typography, Divider} from "antd";
 import {AccountInfo} from "../../components/Account";
 import Web3 from "web3";
 import { TransactionReceipt } from "web3-core";
@@ -55,7 +55,8 @@ const SendOne = () => {
     {account &&
       <Box>
           <AccountInfo />
-          <Box gap={'16px'} margin={{ top: '32px' }}>
+          <Divider />
+          <Box gap={'16px'}>
               <Input
                   placeholder={'Address'}
                   onChange={(e) => setTargetAddress(e.target.value)}
