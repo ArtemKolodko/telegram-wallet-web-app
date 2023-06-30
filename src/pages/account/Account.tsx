@@ -20,15 +20,15 @@ export const UserAccount = () => {
   const onDeleteClicked = async () => {
     storage.deleteAccount()
 
-    try {
-      const wallets = await getWallets(userId, account.address)
-      if(wallets.items.length > 0) {
-        const wallet = wallets.items[0]
-        await deleteWallet(wallet.id)
-      }
-    } catch (e) {
-      console.log('Cannot delete wallet', e)
-    }
+    // try {
+    //   const wallets = await getWallets(userId, account.address)
+    //   if(wallets.items.length > 0) {
+    //     const wallet = wallets.items[0]
+    //     await deleteWallet(wallet.id)
+    //   }
+    // } catch (e) {
+    //   console.log('Cannot delete wallet', e)
+    // }
     navigate(`/create-wallet`)
   }
 

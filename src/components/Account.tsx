@@ -22,6 +22,8 @@ export const AccountInfo = () => {
         }
       } catch(e) {
         console.log('Cannot get user balance', e)
+      } finally {
+        setTimeout(getUserData, 1000)
       }
     }
     getUserData()

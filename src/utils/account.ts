@@ -10,7 +10,7 @@ export const generateTOTP = (secret: string, userId: string) => {
     label: userId,
     algorithm: "SHA1",
     digits: 6,
-    period: 60,
+    period: 60 * 5,
     secret,
   });
 }

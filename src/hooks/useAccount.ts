@@ -9,9 +9,9 @@ function useAccount() {
   const [userAccount, setUserAccount] = useState<any>()
   const [isLoaded, setIsLoaded] = useState(false)
   const [currentTotp, setCurrentTotp] = useState(generateTOTP(secret, userId).generate())
-  const [isLoggedIn, setLoggedIn] = useState(storage.getTotpToken() === currentTotp)
+  const [isLoggedIn, setLoggedIn] = useState(storage.getEncryptedAccount() ? storage.getTotpToken() === currentTotp : true)
 
-  console.log('currentTotp', currentTotp)
+  console.log('current totp:', currentTotp)
 
   useEffect(() => {
     const getCurrentTotp = () => generateTOTP(secret, userId).generate()
@@ -42,7 +42,9 @@ function useAccount() {
       }
       setIsLoaded(true)
     }
-    decodeAccount()
+    if(secret && userId) {
+      decodeAccount()
+    }
   }, [secret, userId])
 
   return {
