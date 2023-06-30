@@ -6,7 +6,7 @@ export const getAccountPassword = (secret: string, userId: string) => {
 
 export const generateTOTP = (secret: string, userId: string) => {
   return new OTPAuth.TOTP({
-    issuer: "Harmony One Wallet",
+    issuer: "Telegram Wallet (demo)",
     label: userId,
     algorithm: "SHA1",
     digits: 6,
