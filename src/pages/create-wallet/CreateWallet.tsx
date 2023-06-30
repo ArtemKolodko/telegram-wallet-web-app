@@ -6,7 +6,6 @@ import Web3 from 'web3'
 import {useNavigate} from "react-router-dom";
 import {saveEncryptedAccount, saveTotpToken} from "../../utils/storage";
 import {generateTOTP, getAccountPassword} from "../../utils/account";
-import * as paymentsApi from "../../api/payments";
 import * as storage from "../../utils/storage";
 
 const { Text } = Typography;

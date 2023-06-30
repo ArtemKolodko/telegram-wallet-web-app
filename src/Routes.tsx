@@ -3,7 +3,6 @@ import {Route, Routes, useNavigate} from "react-router-dom";
 import {UserAccount} from "./pages/account/Account";
 import {CreateWallet} from "./pages/create-wallet/CreateWallet";
 import useAccount from "./hooks/useAccount";
-import * as storage from "./utils/storage";
 import {TOTP} from "./pages/totp/totp";
 import SendOne from "./pages/send";
 import {observer} from "mobx-react-lite";
@@ -25,7 +24,7 @@ export const AppRoutes = observer(() => {
     if(isAccountLoaded) {
       initialRedirects()
     }
-  }, [isAccountLoaded, account, navigate, authStore.isLoggedIn])
+  }, [isAccountLoaded, account, navigate])
 
   return <Routes>
     <Route
