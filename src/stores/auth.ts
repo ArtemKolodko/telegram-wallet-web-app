@@ -40,9 +40,7 @@ class AuthStore {
     setInterval(() => this.updateTotp(), 2000)
 
     const storedTotp = storage.getTotpToken()
-    if(storedTotp && storedTotp !== this.currentTotp) {
-      this.setLoggedIn(false)
-    }
+    this.setLoggedIn(!!(storedTotp && storedTotp === this.currentTotp))
   }
 
   setLoggedIn(isLoggedIn: boolean) {

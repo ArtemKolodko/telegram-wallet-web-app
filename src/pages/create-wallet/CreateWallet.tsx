@@ -48,10 +48,10 @@ export const CreateWallet = () => {
       <Box align={'center'}>
         <Image width={'200px'} height={'200px'} src={qrCode} preview={false} />
       </Box>
-      <Text style={{ fontSize: 'x-small' }}>Or enter key manually:</Text>
-      <Box align={'center'}>
-        <Text style={{ fontSize: 'x-small' }} copyable={true}>{secret}</Text>
-      </Box>
+      {/*<Text style={{ fontSize: 'x-small' }}>Or enter key manually:</Text>*/}
+      {/*<Box align={'center'}>*/}
+      {/*  <Text style={{ fontSize: 'x-small' }} copyable={true}>{secret}</Text>*/}
+      {/*</Box>*/}
     </Box>
     <Box margin={{ top: 'large' }}>
       <Box align={'center'}>
