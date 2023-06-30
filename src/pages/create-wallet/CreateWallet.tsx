@@ -7,6 +7,7 @@ import {useNavigate} from "react-router-dom";
 import {saveEncryptedAccount, saveTotpToken} from "../../utils/storage";
 import {generateTOTP, getAccountPassword} from "../../utils/account";
 import * as storage from "../../utils/storage";
+import {authStore} from "../../stores/auth";
 
 const { Text } = Typography;
 
@@ -37,14 +38,9 @@ export const CreateWallet = () => {
     const password = getAccountPassword(secret, userId)
     const encrypted = await web3.eth.accounts.encrypt(account.privateKey, password)
     saveEncryptedAccount(JSON.stringify(encrypted))
+    authStore.setLoggedIn(true)
 
-    // try {
-    //   await paymentsApi.createWallet(userId, account.address)
-    // } catch (e) {
-    //   console.log('Cannot create account:', e)
-    // }
-
-    navigate(`/`)
+    navigate(`/?updateAccount=true`)
   }
 
   return <Box pad={'8px'}>

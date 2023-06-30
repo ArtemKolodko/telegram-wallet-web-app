@@ -5,6 +5,8 @@ import Web3 from "web3";
 import * as storage from "../utils/storage";
 
 function useAccount() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const needUpdateAccount = Boolean(urlParams.get('updateAccount') || 'false')
   const { secret, userId } = storage.getAccountSession()
   const [userAccount, setUserAccount] = useState<any>()
   const [isLoaded, setIsLoaded] = useState(false)
@@ -43,7 +45,7 @@ function useAccount() {
     if(secret && userId) {
       decodeAccount()
     }
-  }, [secret, userId])
+  }, [secret, userId, needUpdateAccount])
 
   return {
     account: userAccount,

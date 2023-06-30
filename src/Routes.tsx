@@ -15,6 +15,7 @@ export const AppRoutes = observer(() => {
 
   useEffect(() => {
     const initialRedirects = () => {
+      console.log('account', account)
       if(!account) {
         navigate(`/create-wallet`)
       } else if(account && !authStore.isLoggedIn) {
