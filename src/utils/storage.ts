@@ -14,6 +14,7 @@ export const getEncryptedAccount = () => {
 
 export const deleteAccount = () => {
   window.localStorage.removeItem(StorageKey.account)
+  window.localStorage.removeItem(StorageKey.totpToken)
 }
 
 export const saveTotpToken = (token: string) => {

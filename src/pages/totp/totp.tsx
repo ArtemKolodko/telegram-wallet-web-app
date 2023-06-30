@@ -3,21 +3,28 @@ import {Box} from "grommet";
 import {Typography, InputNumber, Button} from "antd";
 import * as storage from "../../utils/storage";
 import {useNavigate} from "react-router-dom";
+import useAccount from "../../hooks/useAccount";
+import {observer} from "mobx-react";
+import {authStore} from "../../stores/auth";
 const { Text } = Typography;
 
-
-export const TOTP = (props: { onChange: (e: number | null) => void }) => {
+export const TOTP = observer(() => {
+  const { currentTotp } = useAccount()
   const navigate = useNavigate()
 
   const [value, setValue] = useState<number | null>(null)
 
   const onChange = (v: number | null) => {
     setValue(v)
-    props.onChange(v)
+    if(v && v.toString() === currentTotp) {
+      storage.saveTotpToken(v.toString())
+      navigate('/')
+    }
   }
 
   const onDelete = async () => {
     storage.deleteAccount()
+    authStore.setLoggedIn(true)
     navigate(`/create-wallet`)
   }
 
@@ -30,4 +37,4 @@ export const TOTP = (props: { onChange: (e: number | null) => void }) => {
       <Button danger onClick={onDelete}>Delete account</Button>
     </Box>
   </Box>
-}
+})

@@ -11,8 +11,6 @@ function useAccount() {
   const [currentTotp, setCurrentTotp] = useState(generateTOTP(secret, userId).generate())
   const [isLoggedIn, setLoggedIn] = useState(storage.getEncryptedAccount() ? storage.getTotpToken() === currentTotp : true)
 
-  console.log('current totp:', currentTotp)
-
   useEffect(() => {
     const getCurrentTotp = () => generateTOTP(secret, userId).generate()
     const updateTotp = () => {

@@ -1,6 +1,6 @@
 import React from 'react'
 import {Box} from "grommet";
-import {Button} from "antd";
+import {Button, Divider} from "antd";
 import useAccount from "../../hooks/useAccount";
 import * as storage from "../../utils/storage";
 import {useNavigate} from "react-router-dom";
@@ -25,7 +25,8 @@ export const UserAccount = () => {
 
   return <Box pad={'16px'}>
     <AccountInfo />
-    <Box margin={{ top: '32px' }}>
+    <Box>
+      <Divider />
       <Box gap={'16px'}>
         <Button type={'primary'} onClick={onSendClicked}>Send ONE</Button>
         <Button danger onClick={onDeleteClicked}>Delete account</Button>

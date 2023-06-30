@@ -39,11 +39,11 @@ export const CreateWallet = () => {
     const encrypted = await web3.eth.accounts.encrypt(account.privateKey, password)
     saveEncryptedAccount(JSON.stringify(encrypted))
 
-    try {
-      await paymentsApi.createWallet(userId, account.address)
-    } catch (e) {
-      console.log('Cannot create account:', e)
-    }
+    // try {
+    //   await paymentsApi.createWallet(userId, account.address)
+    // } catch (e) {
+    //   console.log('Cannot create account:', e)
+    // }
 
     navigate(`/`)
   }
@@ -74,7 +74,7 @@ export const CreateWallet = () => {
         <Box align={'center'} margin={{ top: 'medium' }}>
             <Box width={'420px'}>
                 <Checkbox onChange={(e) => setIsChecked(e.target.checked)}>
-                    <Text style={{ fontWeight: 'bold' }}>I understand that account is stored only on this device. In the case of loss private key will not be available.</Text>
+                    <Text style={{ fontWeight: 'bold' }}>I understand that account is stored only on this device. In the case of loss private key cannot be restored.</Text>
                 </Checkbox>
             </Box>
             <Box width={'220px'} margin={{ top: 'medium' }}>
@@ -83,7 +83,7 @@ export const CreateWallet = () => {
                     disabled={!isChecked}
                     onClick={saveUserAccount}
                 >
-                    Complete registration
+                    Create account
                 </Button>
             </Box>
         </Box>
