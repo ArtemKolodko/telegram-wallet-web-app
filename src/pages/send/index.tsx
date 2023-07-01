@@ -58,7 +58,7 @@ const SendOne = () => {
           <Divider />
           <Box gap={'16px'}>
               <Input
-                  placeholder={'Address'}
+                  placeholder={'Address (0x...)'}
                   onChange={(e) => setTargetAddress(e.target.value)}
               />
               <InputNumber
