@@ -38,3 +38,14 @@ export const getAccountSession = (): AccountStorage => {
   const dataRaw = window.sessionStorage.getItem(StorageKey.sessionData) || '{}'
   return JSON.parse(dataRaw)
 }
+
+export const removeBrokenAccount = () => {
+  const data = window.localStorage.getItem(StorageKey.account)
+  if(data) {
+    const newKey = `${StorageKey.account}_save_${Date.now}`
+    window.localStorage.setItem(newKey, data)
+    window.localStorage.removeItem(StorageKey.account)
+    window.localStorage.removeItem(StorageKey.totpToken)
+    console.log('Account migrated to', newKey)
+  }
+}

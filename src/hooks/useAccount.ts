@@ -38,6 +38,7 @@ function useAccount() {
           }
         } catch (e) {
           console.log('Cannot decrypt account', e)
+          storage.removeBrokenAccount()
         }
       }
       setIsLoaded(true)
