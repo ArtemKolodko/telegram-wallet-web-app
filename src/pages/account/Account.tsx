@@ -1,16 +1,17 @@
 import React from 'react'
 import {Box} from "grommet";
 import {Button, Divider} from "antd";
-import useAccount from "../../hooks/useAccount";
 import * as storage from "../../utils/storage";
 import {useNavigate} from "react-router-dom";
 import {AccountInfo} from "../../components/Account";
+import {observer} from "mobx-react";
+import {AuthStore} from "../../stores/auth";
 
-export const UserAccount = () => {
-  const { account } = useAccount()
+export const UserAccount = observer((props: { authStore?: AuthStore }) => {
+  const { authStore } = props
   const navigate = useNavigate()
 
-  if(!account) {
+  if(!authStore?.userAccount) {
     return null
   }
 
@@ -33,4 +34,4 @@ export const UserAccount = () => {
       </Box>
     </Box>
   </Box>
-}
+})

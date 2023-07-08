@@ -9,7 +9,7 @@ function App() {
   return <Grommet full>
     <BrowserRouter>
       <Provider authStore={authStore}>
-        <AppRoutes />
+        <AppRoutes authStore={authStore} />
       </Provider>
     </BrowserRouter>
   </Grommet>

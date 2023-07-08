@@ -6,7 +6,8 @@ import {AccountInfo} from "../../components/Account";
 import Web3 from "web3";
 import { TransactionReceipt } from "web3-core";
 import config from "../../config";
-import useAccount from "../../hooks/useAccount";
+import {observer} from "mobx-react";
+import {AuthStore} from "../../stores/auth";
 const { Text, Link } = Typography
 
 const Menu = () => {
@@ -17,8 +18,8 @@ const Menu = () => {
   </Box>
 }
 
-const SendOne = () => {
-  const { account } = useAccount()
+const SendOne = observer((props: { authStore?: AuthStore }) => {
+  const { authStore } = props
   const [isSending, setSending] = useState(false)
   const [txError, setTxError] = useState('')
   const [txResult, setTxResult] = useState<TransactionReceipt | null>(null)
@@ -27,14 +28,18 @@ const SendOne = () => {
 
   const onSendClicked = async () => {
     try {
+      if(!(authStore && authStore.userAccount)) {
+        return
+      }
+      const { userAccount } = authStore
       setTxResult(null)
       setTxError('')
       setSending(true)
       const web3 = new Web3(config.rpcUrl)
-      web3.eth.accounts.wallet.add(account)
+      web3.eth.accounts.wallet.add(userAccount)
       const gasPrice = await web3.eth.getGasPrice();
       const res = await web3.eth.sendTransaction({
-        from: account.address,
+        from: userAccount.address,
         to: targetAddress,
         value: web3.utils.toHex(web3.utils.toWei(amountOne.toString(), 'ether')),
         gasPrice,
@@ -52,7 +57,7 @@ const SendOne = () => {
 
   return <Box pad={'16px'} gap={'16px'}>
     <Menu />
-    {account &&
+    {authStore?.userAccount &&
       <Box>
           <AccountInfo />
           <Divider />
@@ -93,6 +98,6 @@ const SendOne = () => {
       </Box>
     }
   </Box>
-}
+})
 
 export default SendOne
