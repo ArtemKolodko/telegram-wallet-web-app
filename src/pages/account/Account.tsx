@@ -5,11 +5,12 @@ import * as storage from "../../utils/storage";
 import {useNavigate} from "react-router-dom";
 import {AccountInfo} from "../../components/Account";
 import {observer} from "mobx-react";
-import {AuthStore} from "../../stores/auth";
+import {useStores} from "../../stores/useStores";
 
-export const UserAccount = observer((props: { authStore?: AuthStore }) => {
-  const { authStore } = props
+export const UserAccount = observer(() => {
   const navigate = useNavigate()
+  const { authStore } = useStores()
+  console.log('userBalance', authStore.userBalance)
 
   if(!authStore?.userAccount) {
     return null

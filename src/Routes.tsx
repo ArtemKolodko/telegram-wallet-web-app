@@ -4,11 +4,12 @@ import {UserAccount} from "./pages/account/Account";
 import {CreateWallet} from "./pages/create-wallet/CreateWallet";
 import {TOTP} from "./pages/totp/totp";
 import SendOne from "./pages/send";
-import {observer} from "mobx-react-lite";
-import {AuthStore} from "./stores/auth";
+import {observer} from "mobx-react";
+import {useStores} from "./stores/useStores";
 
-export const AppRoutes = observer((props: { authStore: AuthStore }) => {
-  const { userAccount, isLoggedIn, isAccountLoaded, isAccountCreated } = props.authStore
+export const AppRoutes = observer(() => {
+  const { authStore } = useStores()
+  const { userAccount, isLoggedIn, isAccountLoaded, isAccountCreated } = authStore
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -32,6 +33,6 @@ export const AppRoutes = observer((props: { authStore: AuthStore }) => {
     />
     <Route path={'create-wallet'} element={<CreateWallet />} />
     <Route path={'send'} element={<SendOne />} />
-    <Route path={'totp'} element={<TOTP authStore={props.authStore} />} />
+    <Route path={'totp'} element={<TOTP />} />
   </Routes>
 })

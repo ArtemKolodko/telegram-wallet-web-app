@@ -4,12 +4,12 @@ import {Typography, InputNumber, Button} from "antd";
 import * as storage from "../../utils/storage";
 import {useNavigate} from "react-router-dom";
 import {observer} from "mobx-react";
-import {AuthStore} from "../../stores/auth";
+import {useStores} from "../../stores/useStores";
 const { Text } = Typography;
 
-export const TOTP = observer((props: { authStore: AuthStore }) => {
-  const { authStore } = props
-  const { currentTotp } = props.authStore
+export const TOTP = observer(() => {
+  const { authStore } = useStores()
+  const { currentTotp } = authStore
   const navigate = useNavigate()
 
   const [value, setValue] = useState<number | null>(null)

@@ -2,12 +2,12 @@ import React, {useState} from 'react'
 import {Box} from "grommet";
 import {Typography} from "antd";
 import {observer} from "mobx-react";
-import {AuthStore} from "../stores/auth";
+import {useStores} from "../stores/useStores";
 const { Text } = Typography
 
 
-export const AccountInfo = observer((props: { authStore?: AuthStore }) => {
-  const { authStore } = props
+export const AccountInfo = observer(() => {
+  const { authStore } = useStores()
   const [isPKVisible, setPKVisible] = useState(false)
 
   return <Box gap={'16px'}>
