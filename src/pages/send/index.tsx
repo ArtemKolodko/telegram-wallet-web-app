@@ -10,7 +10,7 @@ import config from "../../config";
 import {observer} from "mobx-react";
 import {useStores} from "../../stores/useStores";
 import {TOTPInput} from "../../components/totpInput";
-import {ArrowRightOutlined} from '@ant-design/icons';
+import {ArrowRightOutlined, CheckOutlined, LeftOutlined} from '@ant-design/icons';
 import {cutAddress} from "../../utils";
 const { Text, Link } = Typography
 
@@ -154,8 +154,8 @@ const SendOne = observer(() => {
 
   if(currentStep === 'confirm') {
     content = <Box>
-      <Box>
-        <Button onClick={() => setCurrentStep('edit')}>Edit</Button>
+      <Box width={'100px'}>
+        <Button icon={<LeftOutlined />} onClick={() => setCurrentStep('edit')}>Edit</Button>
       </Box>
       <Box margin={{ top: '32px' }}>
         <Text type={'secondary'}>Sending ONE</Text>
@@ -165,16 +165,18 @@ const SendOne = observer(() => {
       </Box>
       <Box direction={'row'} margin={{ top: '8px' }} align={'center'} gap={'24px'}>
         <Text style={{ fontSize: '20px' }}>{cutAddress(authStore.userAccount.address)}</Text>
-        <ArrowRightOutlined color={'gray'} />
+        <ArrowRightOutlined style={{ color: '#A9A9A9' }} />
         <Text style={{ fontSize: '20px' }}>{cutAddress(targetAddress)}</Text>
       </Box>
       <Box align={'center'} margin={{ top: '32px' }} gap={'8px'}>
-        <TOTPInput disabled={isTotpConfirmed} onChange={onChangeTotp} />
-        {isTotpConfirmed &&
-            <Text type={'success'}>
-                Code confirmed
-            </Text>
-        }
+        <Box style={{ position: 'relative' }}>
+          <TOTPInput disabled={isTotpConfirmed} onChange={onChangeTotp} />
+          {isTotpConfirmed &&
+              <Box style={{ position: 'absolute', left: '-32px', top: '24px' }}>
+                  <CheckOutlined style={{ color: '#52c41a' }} />
+              </Box>
+          }
+        </Box>
         {!isTotpConfirmed &&
             <Text type={'secondary'}>
                 Enter 6-digit code from the Authenticator app
