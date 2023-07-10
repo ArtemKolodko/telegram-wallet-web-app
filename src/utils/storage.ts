@@ -42,7 +42,7 @@ export const getAccountSession = (): AccountStorage => {
 export const removeBrokenAccount = () => {
   const data = window.localStorage.getItem(StorageKey.account)
   if(data) {
-    const newKey = `${StorageKey.account}_save_${Date.now}`
+    const newKey = `${StorageKey.account}_save_${Date.now()}`
     window.localStorage.setItem(newKey, data)
     window.localStorage.removeItem(StorageKey.account)
     window.localStorage.removeItem(StorageKey.totpToken)

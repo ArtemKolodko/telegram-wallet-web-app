@@ -7,7 +7,7 @@ import {useNavigate} from "react-router-dom";
 import {saveEncryptedAccount, saveTotpToken} from "../../utils/storage";
 import {generateTOTP, getAccountPassword} from "../../utils/account";
 import * as storage from "../../utils/storage";
-import {authStore} from "../../stores/auth";
+import {useStores} from "../../stores/useStores";
 
 const { Text } = Typography;
 
@@ -15,6 +15,7 @@ const web3 = new Web3()
 
 export const CreateWallet = () => {
   const navigate = useNavigate()
+  const { authStore } = useStores()
   const { secret, userId } = storage.getAccountSession()
 
   const [qrCode, setQrCode] = useState('')

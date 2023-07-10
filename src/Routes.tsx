@@ -2,29 +2,28 @@ import React, {useEffect} from 'react'
 import {Route, Routes, useNavigate} from "react-router-dom";
 import {UserAccount} from "./pages/account/Account";
 import {CreateWallet} from "./pages/create-wallet/CreateWallet";
-import useAccount from "./hooks/useAccount";
 import {TOTP} from "./pages/totp/totp";
 import SendOne from "./pages/send";
-import {observer} from "mobx-react-lite";
-import {authStore} from "./stores/auth";
+import {observer} from "mobx-react";
+import {useStores} from "./stores/useStores";
 
 export const AppRoutes = observer(() => {
+  const { authStore } = useStores()
+  const { userAccount, isLoggedIn, isAccountLoaded, isAccountCreated } = authStore
   const navigate = useNavigate()
-
-  const { account, isLoaded: isAccountLoaded } = useAccount()
 
   useEffect(() => {
     const initialRedirects = () => {
-      if(!authStore.isAccountCreated) {
+      if(!isAccountCreated) {
         navigate(`/create-wallet`)
-      } else if(account && !authStore.isLoggedIn) {
+      } else if(userAccount && !isLoggedIn) {
         navigate(`/totp`)
       }
     }
     if(isAccountLoaded) {
       initialRedirects()
     }
-  }, [isAccountLoaded, account, navigate])
+  }, [isAccountLoaded, userAccount, navigate, isAccountCreated, isLoggedIn])
 
   return <Routes>
     <Route
