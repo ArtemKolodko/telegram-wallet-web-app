@@ -14,10 +14,8 @@ export const AppRoutes = observer(() => {
 
   useEffect(() => {
     const initialRedirects = () => {
-      if(!isAccountCreated) {
+      if(!userAccount) {
         navigate(`/create-wallet`)
-      } else if(userAccount && !isLoggedIn) {
-        navigate(`/totp`)
       }
     }
     if(isAccountLoaded) {

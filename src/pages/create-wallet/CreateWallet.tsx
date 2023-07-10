@@ -4,7 +4,7 @@ import {Button, Typography, Image, Checkbox} from "antd";
 import { toDataURL } from 'qrcode'
 import Web3 from 'web3'
 import {useNavigate} from "react-router-dom";
-import {saveEncryptedAccount, saveTotpToken} from "../../utils/storage";
+import {saveTotpToken} from "../../utils/storage";
 import {generateTOTP, getAccountPassword} from "../../utils/account";
 import * as storage from "../../utils/storage";
 import {useStores} from "../../stores/useStores";
@@ -36,10 +36,7 @@ export const CreateWallet = () => {
 
   const saveUserAccount = async () => {
     const password = getAccountPassword(secret, userId)
-    const encrypted = await web3.eth.accounts.encrypt(account.privateKey, password)
-    saveEncryptedAccount(JSON.stringify(encrypted))
-    authStore.setLoggedIn(true)
-
+    await authStore.createUserAccount(account, password)
     navigate(`/?updateAccount=true`)
   }
 
