@@ -20,7 +20,8 @@ export const TOTPInput = (props: TotpInputProps) => {
     disabled={props.disabled}
     status={value && value.toString().length === 6 ? 'error' : ''}
     size={'large'}
-    style={{ fontSize: '36px', lineHeight: '62px', width: '180px' }}
+    style={{ fontSize: '32px', width: '140px' }}
+    controls={false}
     maxLength={6}
     // placeholder={'123456'}
     onChange={onChange}
