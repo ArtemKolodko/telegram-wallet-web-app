@@ -172,7 +172,7 @@ const SendOne = observer(() => {
         <Box style={{ position: 'relative' }}>
           <TOTPInput disabled={isTotpConfirmed} onChange={onChangeTotp} />
           {isTotpConfirmed &&
-              <Box style={{ position: 'absolute', left: '-32px', top: '24px' }}>
+              <Box style={{ position: 'absolute', left: '-32px', top: '18px' }}>
                   <CheckOutlined style={{ color: '#52c41a' }} />
               </Box>
           }
