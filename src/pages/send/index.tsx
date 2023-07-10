@@ -1,38 +1,59 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Box} from "grommet";
 import {useNavigate} from "react-router-dom";
-import {Button, Input, InputNumber, Typography, Divider} from "antd";
+import {Button, Input, InputNumber, Typography, Divider, Breadcrumb} from "antd";
 import {AccountInfo} from "../../components/Account";
 import Web3 from "web3";
+import bn from 'bignumber.js'
 import { TransactionReceipt } from "web3-core";
 import config from "../../config";
 import {observer} from "mobx-react";
 import {useStores} from "../../stores/useStores";
 import {TOTPInput} from "../../components/totpInput";
-import {ArrowRightOutlined, LeftOutlined} from '@ant-design/icons';
+import {ArrowRightOutlined} from '@ant-design/icons';
 import {cutAddress} from "../../utils";
 const { Text, Link } = Typography
 
 const Menu = () => {
   const navigate = useNavigate()
 
-  return <Box direction={'row'} gap={'8px'}>
-    <Text onClick={() => navigate('/')}>Account</Text> / <Text  type={'secondary'}>Send ONE</Text>
-  </Box>
+  return <Breadcrumb items={[{
+    title: <Text onClick={() => navigate('/')}>Account</Text>
+  }, {
+    title: <Text onClick={() => navigate('/send')}>Send ONE</Text>
+  }]} />;
 }
 
 const SendOne = observer(() => {
   const { authStore } = useStores()
 
   const urlParams = new URLSearchParams(window.location.search);
+  const initialStep = ['edit', 'confirm'].includes(urlParams.get('step') || '') ? urlParams.get('step') as 'edit' | 'confirm' : 'edit'
 
-  const [currentStep, setCurrentStep] = useState<'edit' | 'confirm'>('confirm')
+  const [currentStep, setCurrentStep] = useState<'edit' | 'confirm'>(initialStep)
   const [isTotpConfirmed, setTotpConfirmed] = useState(authStore.isTotpAuthorized())
   const [isSending, setSending] = useState(false)
   const [txError, setTxError] = useState('')
   const [txResult, setTxResult] = useState<TransactionReceipt | null>(null)
   const [targetAddress, setTargetAddress] = useState(urlParams.get('to') ||  '')
   const [amountOne, setAmountOne] = useState(urlParams.get('amount') ||  '')
+  const [gasPrice, setGasPrice] = useState('0')
+
+  useEffect(() => {
+    const calculateGasPrice = async () => {
+      try {
+        if(authStore.userAccount) {
+          const web3 = new Web3(config.rpcUrl)
+          const gasPrice = await web3.eth.getGasPrice();
+          const gasLimit = '21000'
+          setGasPrice((+gasPrice * +gasLimit).toString())
+        }
+      } catch (e) {
+        console.log('Cannot estimate gas price', e)
+      }
+    }
+    calculateGasPrice()
+  }, [authStore.userAccount])
 
   const onSendClicked = async () => {
     try {
@@ -63,102 +84,138 @@ const SendOne = observer(() => {
     }
   }
 
-  if(!authStore.userAccount) {
-    return <Box pad={'16px'} gap={'16px'}>
-      <Menu />
-      <AccountInfo />
-      <Box>
-        No user account found
-      </Box>
-    </Box>
-  }
-
-  if(currentStep === 'edit') {
-    return <Box pad={'16px'} gap={'16px'}>
-      <Menu />
-      <Box>
-        <AccountInfo />
-        <Divider />
-        <Box gap={'16px'}>
-          <Input
-            placeholder={'Address (0x...)'}
-            value={targetAddress}
-            onChange={(e) => setTargetAddress(e.target.value)}
-          />
-          <InputNumber
-            placeholder={'Amount'}
-            addonAfter={<Box>ONE</Box>}
-            value={amountOne}
-            onChange={(value) => setAmountOne(value || '')}
-          />
-        </Box>
-        <Box margin={{ top: '32px' }}>
-          <Button
-            type={'primary'}
-            disabled={!amountOne}
-            onClick={() => setCurrentStep('confirm')}>
-            Confirm
-          </Button>
-        </Box>
-      </Box>
-    </Box>
-  }
-
   const onChangeTotp = (value: number | null) => {
-    if((value || '0').toString() === authStore.currentTotp) {
+    const token = (value || '0').toString()
+    if(token === authStore.currentTotp) {
       setTotpConfirmed(true)
-      authStore.saveTotpToken(authStore.currentTotp)
+      authStore.saveTotpToken(token)
     }
   }
 
-  return <Box pad={'16px'} gap={'16px'}>
-    <Box>
-      <Button icon={<LeftOutlined />} onClick={() => setCurrentStep('edit')}>Edit</Button>
+  let content = null
+
+  if(!authStore.userAccount) {
+    content = <Box>
+      No user account found
     </Box>
-    <Box>
-      <Text type={'secondary'}>Sending ONE</Text>
-      <Text style={{ fontSize: '26px' }}>{amountOne}</Text>
+
+    return <Box pad={'16px'} gap={'16px'}>
+      <Menu />
+      <Box>
+        {content}
+      </Box>
     </Box>
-    <Box direction={'row'} align={'center'} gap={'24px'}>
-      <Text style={{ fontSize: '22px' }}>{cutAddress(authStore.userAccount.address)}</Text>
-      <ArrowRightOutlined color={'gray'} />
-      <Text style={{ fontSize: '22px' }}>{cutAddress(targetAddress)}</Text>
+  }
+
+  let errorMessage = ''
+  const userBalanceWei = bn(Web3.utils.toWei(authStore.userBalance.toString(), 'ether'))
+  const amountWei = bn(Web3.utils.toWei((amountOne || '0').toString(), 'ether'))
+  if(amountWei.plus(gasPrice).gt(userBalanceWei)) {
+    if(amountWei.lte(userBalanceWei)) {
+      errorMessage = 'Insufficient funds for gas'
+    } else {
+      errorMessage = 'Insufficient funds'
+    }
+  }
+
+  if(currentStep === 'edit') {
+    const insufficientFundsError = authStore.userBalance < amountOne ? '' : ''
+    const confirmError = insufficientFundsError || ''
+
+    content = <Box>
+      <AccountInfo />
+      <Divider />
+      <Box gap={'16px'}>
+        <Input
+          placeholder={'Address (0x...)'}
+          value={targetAddress}
+          onChange={(e) => setTargetAddress(e.target.value)}
+        />
+        <InputNumber
+          placeholder={'Amount'}
+          addonAfter={<Box>ONE</Box>}
+          value={amountOne}
+          onChange={(value) => setAmountOne(value || '')}
+        />
+        {errorMessage &&
+          <Text type={'danger'}>{errorMessage}</Text>
+        }
+      </Box>
+      <Box margin={{ top: '16px' }}>
+        <Button
+          type={'primary'}
+          disabled={!amountOne || !!confirmError || !!errorMessage}
+          onClick={() => setCurrentStep('confirm')}>
+          Confirm
+        </Button>
+      </Box>
     </Box>
-    <Box align={'center'} margin={{ top: '16px' }} gap={'8px'}>
-      <TOTPInput disabled={isTotpConfirmed} onChange={onChangeTotp} />
-      {isTotpConfirmed &&
-          <Text type={'success'}>
-              Code confirmed
-          </Text>
-      }
-      {!isTotpConfirmed &&
-          <Text type={'secondary'}>
-              Enter 6-digit code from the Authenticator app
-          </Text>
-      }
-    </Box>
-    <Box margin={{ top: '16px' }}>
-      <Button
-        type={'primary'}
-        loading={isSending}
-        disabled={!isTotpConfirmed || isSending}
-        onClick={onSendClicked}
-      >
-        Send
-      </Button>
-    </Box>
-    <Box margin={{ top: '8px' }}>
-      {txError &&
-          <Text type="danger">Error: {txError}</Text>
-      }
-      {txResult &&
-          <Box>
-              <Text>Transaction hash:</Text>
-              <Link href={`https://explorer.harmony.one/tx/${txResult.transactionHash}`} target="_blank">
-                {txResult.transactionHash}
-              </Link>
+  }
+
+  if(currentStep === 'confirm') {
+    content = <Box>
+      <Box>
+        <Button onClick={() => setCurrentStep('edit')}>Edit</Button>
+      </Box>
+      <Box margin={{ top: '32px' }}>
+        <Text type={'secondary'}>Sending ONE</Text>
+      </Box>
+      <Box>
+        <Text style={{ fontSize: '26px' }}>{amountOne}</Text>
+      </Box>
+      <Box direction={'row'} margin={{ top: '8px' }} align={'center'} gap={'24px'}>
+        <Text style={{ fontSize: '20px' }}>{cutAddress(authStore.userAccount.address)}</Text>
+        <ArrowRightOutlined color={'gray'} />
+        <Text style={{ fontSize: '20px' }}>{cutAddress(targetAddress)}</Text>
+      </Box>
+      <Box align={'center'} margin={{ top: '32px' }} gap={'8px'}>
+        <TOTPInput disabled={isTotpConfirmed} onChange={onChangeTotp} />
+        {isTotpConfirmed &&
+            <Text type={'success'}>
+                Code confirmed
+            </Text>
+        }
+        {!isTotpConfirmed &&
+            <Text type={'secondary'}>
+                Enter 6-digit code from the Authenticator app
+            </Text>
+        }
+      </Box>
+      {!txResult &&
+          <Box margin={{ top: '32px' }}>
+              <Button
+                  type={'primary'}
+                  loading={isSending}
+                  disabled={!isTotpConfirmed || isSending || !!errorMessage}
+                  onClick={onSendClicked}
+              >
+                  Send
+              </Button>
           </Box>
       }
+      <Box margin={{ top: '8px' }}>
+        {txError &&
+            <Text type="danger">Error: {txError}</Text>
+        }
+        {errorMessage &&
+            <Text type={'danger'}>{errorMessage}</Text>
+        }
+        {txResult &&
+            <Box>
+                <Text>Transaction hash:</Text>
+                <Link href={`https://explorer.harmony.one/tx/${txResult.transactionHash}`} target="_blank">
+                  {txResult.transactionHash}
+                </Link>
+            </Box>
+        }
+      </Box>
+    </Box>
+  }
+
+  return <Box pad={'16px'} gap={'16px'}>
+    <Menu />
+    <Box>
+      {content}
     </Box>
   </Box>
 })

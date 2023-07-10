@@ -60,7 +60,7 @@ export class AuthStore {
         }
       } catch (e) {
         console.log('Cannot decrypt account', e)
-        storage.removeBrokenAccount()
+        // storage.removeBrokenAccount()
       }
     }
   }
@@ -97,6 +97,7 @@ export class AuthStore {
   }
 
   public isTotpAuthorized() {
+    console.log('this.currentTotp', this.currentTotp)
     return this.currentTotp === storage.getTotpToken()
   }
 }
