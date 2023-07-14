@@ -199,12 +199,12 @@ const SendOne = observer(() => {
         {txError &&
             <Text type="danger">Error: {txError}</Text>
         }
-        {errorMessage &&
+        {!txResult && errorMessage &&
             <Text type={'danger'}>{errorMessage}</Text>
         }
         {txResult &&
             <Box>
-                <Text>Transaction hash:</Text>
+                <Text>Transaction completed. Show on the Explorer:</Text>
                 <Link href={`https://explorer.harmony.one/tx/${txResult.transactionHash}`} target="_blank">
                   {txResult.transactionHash}
                 </Link>
