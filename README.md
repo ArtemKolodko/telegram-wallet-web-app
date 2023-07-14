@@ -22,7 +22,9 @@ Your account will be randomly generated and private key is stored only on the cl
 
 ### 2. Refill the account
 
-Go to wallet (you can always access it with `/wallet` command). Copy your address and send some amount of ONE tokens to this address.
+Go to the wallet (you can always access it with `/wallet` command).
+
+Copy your address and send some amount of ONE tokens to this address.
 
 ### 3. Check your balance
 
