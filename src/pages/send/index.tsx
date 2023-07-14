@@ -110,7 +110,8 @@ const SendOne = observer(() => {
   let errorMessage = ''
   const userBalanceWei = bn(Web3.utils.toWei(authStore.userBalance.toString(), 'ether'))
   const amountWei = bn(Web3.utils.toWei((amountOne || '0').toString(), 'ether'))
-  if(amountWei.plus(gasPrice).gt(userBalanceWei)) {
+
+  if(targetAddress && amountOne && amountWei.plus(gasPrice).gt(userBalanceWei)) {
     if(amountWei.lte(userBalanceWei)) {
       errorMessage = 'Insufficient funds for gas'
     } else {
@@ -144,7 +145,7 @@ const SendOne = observer(() => {
       <Box margin={{ top: '16px' }}>
         <Button
           type={'primary'}
-          disabled={!amountOne || !!confirmError || !!errorMessage}
+          disabled={!targetAddress || !amountOne || !!confirmError || !!errorMessage}
           onClick={() => setCurrentStep('confirm')}>
           Confirm
         </Button>
