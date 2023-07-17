@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {Box} from "grommet";
-import {useNavigate} from "react-router-dom";
-import {Button, Input, InputNumber, Typography, Divider, Breadcrumb} from "antd";
+import {Button, Input, InputNumber, Typography, Divider} from "antd";
 import {AccountInfo} from "../../components/Account";
 import Web3 from "web3";
 import bn from 'bignumber.js'
@@ -9,20 +8,9 @@ import { TransactionReceipt } from "web3-core";
 import config from "../../config";
 import {observer} from "mobx-react";
 import {useStores} from "../../stores/useStores";
-import {TOTPInput} from "../../components/totpInput";
-import {ArrowRightOutlined, CheckOutlined, LeftOutlined} from '@ant-design/icons';
+import {ArrowRightOutlined, LeftOutlined} from '@ant-design/icons';
 import {cutAddress} from "../../utils";
 const { Text, Link } = Typography
-
-const Menu = () => {
-  const navigate = useNavigate()
-
-  return <Breadcrumb items={[{
-    title: <Text onClick={() => navigate('/')}>Account</Text>
-  }, {
-    title: <Text onClick={() => navigate('/send')}>Send ONE</Text>
-  }]} />;
-}
 
 const SendOne = observer(() => {
   const { authStore } = useStores()
@@ -31,7 +19,7 @@ const SendOne = observer(() => {
   const initialStep = ['edit', 'confirm'].includes(urlParams.get('step') || '') ? urlParams.get('step') as 'edit' | 'confirm' : 'edit'
 
   const [currentStep, setCurrentStep] = useState<'edit' | 'confirm'>(initialStep)
-  const [isTotpConfirmed, setTotpConfirmed] = useState(authStore.isTotpAuthorized())
+  const [isTotpConfirmed] = useState(true)
   const [isSending, setSending] = useState(false)
   const [txError, setTxError] = useState('')
   const [txResult, setTxResult] = useState<TransactionReceipt | null>(null)
@@ -84,14 +72,6 @@ const SendOne = observer(() => {
     }
   }
 
-  const onChangeTotp = (value: number | null) => {
-    const token = (value || '0').toString()
-    if(token === authStore.currentTotp) {
-      setTotpConfirmed(true)
-      authStore.saveTotpToken(token)
-    }
-  }
-
   let content = null
 
   if(!authStore.userAccount) {
@@ -99,8 +79,7 @@ const SendOne = observer(() => {
       No user account found
     </Box>
 
-    return <Box pad={'16px'} gap={'16px'}>
-      <Menu />
+    return <Box gap={'16px'}>
       <Box>
         {content}
       </Box>
@@ -132,12 +111,14 @@ const SendOne = observer(() => {
           value={targetAddress}
           onChange={(e) => setTargetAddress(e.target.value)}
         />
-        <InputNumber
-          placeholder={'Amount'}
-          addonAfter={<Box>ONE</Box>}
-          value={amountOne}
-          onChange={(value) => setAmountOne(value || '')}
-        />
+        <Box>
+          <InputNumber
+            placeholder={'ONE amount'}
+            value={amountOne}
+            style={{ width: '50%' }}
+            onChange={(value) => setAmountOne(value || '')}
+          />
+        </Box>
         {errorMessage &&
           <Text type={'danger'}>{errorMessage}</Text>
         }
@@ -162,27 +143,12 @@ const SendOne = observer(() => {
         <Text type={'secondary'}>Sending ONE</Text>
       </Box>
       <Box>
-        <Text style={{ fontSize: '26px' }}>{amountOne}</Text>
+        <Text style={{ fontSize: '28px' }}>{amountOne}</Text>
       </Box>
-      <Box direction={'row'} margin={{ top: '8px' }} align={'center'} gap={'24px'}>
-        <Text style={{ fontSize: '20px' }}>{cutAddress(authStore.userAccount.address)}</Text>
+      <Box width={'100%'} direction={'row'} margin={{ top: '8px' }} justify={'between'} align={'center'}>
+        <Text style={{ fontSize: '18px' }} copyable={{ text: authStore.userAccount.address }}>{cutAddress(authStore.userAccount.address)}</Text>
         <ArrowRightOutlined style={{ color: '#A9A9A9' }} />
-        <Text style={{ fontSize: '20px' }}>{cutAddress(targetAddress)}</Text>
-      </Box>
-      <Box align={'center'} margin={{ top: '32px' }} gap={'8px'}>
-        <Box style={{ position: 'relative' }}>
-          <TOTPInput disabled={isTotpConfirmed} onChange={onChangeTotp} />
-          {isTotpConfirmed &&
-              <Box style={{ position: 'absolute', left: '-32px', top: '18px' }}>
-                  <CheckOutlined style={{ color: '#52c41a' }} />
-              </Box>
-          }
-        </Box>
-        {!isTotpConfirmed &&
-            <Text type={'secondary'}>
-                Enter 6-digit code from the Authenticator app
-            </Text>
-        }
+        <Text style={{ fontSize: '18px' }} copyable={{ text: targetAddress }}>{cutAddress(targetAddress)}</Text>
       </Box>
       {!txResult &&
           <Box margin={{ top: '32px' }}>
@@ -204,8 +170,8 @@ const SendOne = observer(() => {
             <Text type={'danger'}>{errorMessage}</Text>
         }
         {txResult &&
-            <Box>
-                <Text>Transaction completed. Show on the Explorer:</Text>
+            <Box margin={{ top: '32px' }}>
+                <Text style={{ fontSize: '18px' }}>Transaction successfully sent</Text>
                 <Link href={`https://explorer.harmony.one/tx/${txResult.transactionHash}`} target="_blank">
                   {txResult.transactionHash}
                 </Link>
@@ -215,8 +181,7 @@ const SendOne = observer(() => {
     </Box>
   }
 
-  return <Box pad={'16px'} gap={'16px'}>
-    <Menu />
+  return <Box gap={'16px'}>
     <Box>
       {content}
     </Box>
