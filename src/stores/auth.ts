@@ -5,14 +5,14 @@ import { Account } from "web3-core";
 import config from "../config";
 
 export class AuthStore {
-  isLoggedIn = true
-  userAccount: Account | undefined
+  userAccount: Account
   userBalance = '0'
   web3: Web3
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true })
     this.web3 = new Web3(config.rpcUrl)
+    this.userAccount = this.decodeAccount() || this.createUserAccount()
 
     this.initStore()
   }
@@ -38,20 +38,17 @@ export class AuthStore {
     if(privateKey) {
       try {
         const account = this.web3.eth.accounts.privateKeyToAccount(privateKey)
-        if(account) {
-          this.userAccount = account
+        if (account) {
+          return account
         }
       } catch (e) {
         console.log('Cannot get account from private key:', e)
       }
-    } else {
-      const account = this.createUserAccount()
-      this.saveUserAccount(account)
     }
+    return null
   }
 
   private async initStore() {
-    this.decodeAccount()
     this.updateUserData()
   }
 
@@ -60,6 +57,10 @@ export class AuthStore {
   }
 
   public saveUserAccount(account: Account) {
+    const existedPrivateKey = storage.getPrivateKey()
+    if(existedPrivateKey) {
+      storage.saveHistoryPrivateKey(existedPrivateKey)
+    }
     storage.savePrivateKey(account.privateKey)
     this.userAccount = account
   }

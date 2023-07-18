@@ -13,8 +13,8 @@ export const CreateWallet = () => {
   const [isChecked, setIsChecked] = useState(false)
   const [account] = useState(authStore.createUserAccount())
 
-  const saveUserAccount = async () => {
-    await authStore.saveUserAccount(account)
+  const saveUserAccount = () => {
+    authStore.saveUserAccount(account)
     navigate(`/`)
   }
 

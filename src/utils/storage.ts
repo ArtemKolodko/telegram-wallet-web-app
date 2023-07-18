@@ -6,6 +6,10 @@ export const savePrivateKey = (value: string) => {
   window.localStorage.setItem(StorageKey.privateKey, value)
 }
 
+export const saveHistoryPrivateKey = (value: string) => {
+  window.localStorage.setItem(StorageKey.privateKey + '_' + Date.now(), value)
+}
+
 export const getPrivateKey = () => {
   return window.localStorage.getItem(StorageKey.privateKey)
 }
