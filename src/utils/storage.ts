@@ -1,51 +1,20 @@
 enum StorageKey {
-  account = 'tg_wallet_account',
-  totpToken = 'tg_wallet_last_totp',
-  sessionData = 'tg_wallet_session_data'
+  privateKey = 'tg_wallet_private_key',
 }
 
-export const saveEncryptedAccount = (value: string) => {
-  window.localStorage.setItem(StorageKey.account, value)
+export const savePrivateKey = (value: string) => {
+  window.localStorage.setItem(StorageKey.privateKey, value)
 }
 
-export const getEncryptedAccount = () => {
-  return window.localStorage.getItem(StorageKey.account)
+export const getPrivateKey = () => {
+  return window.localStorage.getItem(StorageKey.privateKey)
 }
 
 export const deleteAccount = () => {
-  window.localStorage.removeItem(StorageKey.account)
-  window.localStorage.removeItem(StorageKey.totpToken)
-}
-
-export const saveTotpToken = (token: string) => {
-  window.localStorage.setItem(StorageKey.totpToken, token)
-}
-
-export const getTotpToken = () => {
-  return window.localStorage.getItem(StorageKey.totpToken)
-}
-
-export const setAccountSession = (value: string) => {
-  window.sessionStorage.setItem(StorageKey.sessionData, value)
+  window.localStorage.removeItem(StorageKey.privateKey)
 }
 
 export interface AccountStorage {
   userId: string
   secret: string
-}
-
-export const getAccountSession = (): AccountStorage => {
-  const dataRaw = window.sessionStorage.getItem(StorageKey.sessionData) || '{}'
-  return JSON.parse(dataRaw)
-}
-
-export const removeBrokenAccount = () => {
-  const data = window.localStorage.getItem(StorageKey.account)
-  if(data) {
-    const newKey = `${StorageKey.account}_save_${Date.now()}`
-    window.localStorage.setItem(newKey, data)
-    window.localStorage.removeItem(StorageKey.account)
-    window.localStorage.removeItem(StorageKey.totpToken)
-    console.log('Account migrated to', newKey)
-  }
 }

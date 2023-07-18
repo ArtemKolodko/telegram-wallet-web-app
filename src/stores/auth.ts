@@ -1,5 +1,4 @@
 import {makeAutoObservable, runInAction} from "mobx"
-import {generateTOTP, getAccountPassword} from "../utils/account";
 import * as storage from '../utils/storage'
 import Web3 from "web3";
 import { Account } from "web3-core";
@@ -7,22 +6,15 @@ import config from "../config";
 
 export class AuthStore {
   isLoggedIn = true
-  secret: string = ''
-  userId: string = ''
-  currentTotp = ''
   userAccount: Account | undefined
   userBalance = '0'
-  isAccountLoaded: boolean = false
+  web3: Web3
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true })
+    this.web3 = new Web3(config.rpcUrl)
 
-    const accountSession = storage.getAccountSession()
-    const urlParams = new URLSearchParams(window.location.search);
-    const secret = urlParams.get('secret') || accountSession.secret || ''
-    const userId =  urlParams.get('userId') || accountSession.userId || ''
-
-    this.initStore(secret, userId)
+    this.initStore()
   }
 
   private async updateUserData () {
@@ -31,7 +23,7 @@ export class AuthStore {
         const web3 = new Web3(config.rpcUrl)
         const value = await web3.eth.getBalance(this.userAccount.address)
         runInAction(() => {
-          this.userBalance = Web3.utils.fromWei(value, 'ether')
+          this.userBalance = value // Web3.utils.fromWei(value, 'ether')
         })
       }
     } catch(e) {
@@ -41,71 +33,34 @@ export class AuthStore {
     }
   }
 
-  private updateTotp () {
-    const totp = generateTOTP(this.secret, this.userId)
-    this.currentTotp = totp.generate()
-    setTimeout(this.updateTotp, 2000)
-  }
-
-  private async decodeAccount() {
-    const password = getAccountPassword(this.secret, this.userId)
-    const accData = storage.getEncryptedAccount()
-    if(accData) {
+  private decodeAccount() {
+    const privateKey = storage.getPrivateKey()
+    if(privateKey) {
       try {
-        const web3 = new Web3()
-        const decodedData = await web3.eth.accounts.decrypt(JSON.parse(accData), password)
-        if(decodedData) {
-          this.userAccount = decodedData
+        const account = this.web3.eth.accounts.privateKeyToAccount(privateKey)
+        if(account) {
+          this.userAccount = account
         }
       } catch (e) {
-        console.log('Cannot decrypt account', e)
-        // storage.removeBrokenAccount()
+        console.log('Cannot get account from private key:', e)
       }
+    } else {
+      const account = this.createUserAccount()
+      this.saveUserAccount(account)
     }
   }
 
-  get isAccountCreated() {
-    return !!storage.getEncryptedAccount()
+  private async initStore() {
+    this.decodeAccount()
+    this.updateUserData()
   }
 
-  private async initStore(secret: string, userId: string) {
-    this.secret = secret
-    this.userId = userId
-
-    await this.decodeAccount()
-
-    if(secret && userId) {
-      storage.setAccountSession(JSON.stringify({ secret, userId }))
-      this.updateTotp()
-      this.updateUserData()
-
-    }
-
-    // const storedTotp = storage.getTotpToken()
-    // this.setLoggedIn(!!(storedTotp && storedTotp === this.currentTotp))
-    this.setLoggedIn(true)
-    this.isAccountLoaded = true
+  public createUserAccount () {
+    return this.web3.eth.accounts.create()
   }
 
-  setLoggedIn(isLoggedIn: boolean) {
-    this.isLoggedIn = isLoggedIn
-  }
-
-  public saveTotpToken (token: string) {
-    storage.saveTotpToken(token)
-  }
-
-  public isTotpAuthorized() {
-    return this.currentTotp === storage.getTotpToken()
-  }
-
-  public async createUserAccount(account: Account, password: string) {
-    const web3 = new Web3()
-    const encrypted = await web3.eth.accounts.encrypt(account.privateKey, password)
-    storage.saveEncryptedAccount(JSON.stringify(encrypted))
-
-    runInAction(() => {
-      this.userAccount = account
-    })
+  public saveUserAccount(account: Account) {
+    storage.savePrivateKey(account.privateKey)
+    this.userAccount = account
   }
 }

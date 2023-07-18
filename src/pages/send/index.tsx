@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {Box} from "grommet";
-import {useNavigate} from "react-router-dom";
-import {Button, Input, InputNumber, Typography, Divider, Breadcrumb} from "antd";
+import {Button, Input, InputNumber, Typography, Divider} from "antd";
 import {AccountInfo} from "../../components/Account";
 import Web3 from "web3";
 import bn from 'bignumber.js'
@@ -9,20 +8,11 @@ import { TransactionReceipt } from "web3-core";
 import config from "../../config";
 import {observer} from "mobx-react";
 import {useStores} from "../../stores/useStores";
-import {TOTPInput} from "../../components/totpInput";
-import {ArrowRightOutlined, CheckOutlined, LeftOutlined} from '@ant-design/icons';
+import {ArrowRightOutlined, LeftOutlined} from '@ant-design/icons';
 import {cutAddress} from "../../utils";
 const { Text, Link } = Typography
 
-const Menu = () => {
-  const navigate = useNavigate()
-
-  return <Breadcrumb items={[{
-    title: <Text onClick={() => navigate('/')}>Account</Text>
-  }, {
-    title: <Text onClick={() => navigate('/send')}>Send ONE</Text>
-  }]} />;
-}
+const GasLimit = 21000
 
 const SendOne = observer(() => {
   const { authStore } = useStores()
@@ -31,7 +21,7 @@ const SendOne = observer(() => {
   const initialStep = ['edit', 'confirm'].includes(urlParams.get('step') || '') ? urlParams.get('step') as 'edit' | 'confirm' : 'edit'
 
   const [currentStep, setCurrentStep] = useState<'edit' | 'confirm'>(initialStep)
-  const [isTotpConfirmed, setTotpConfirmed] = useState(authStore.isTotpAuthorized())
+  const [isTotpConfirmed] = useState(true)
   const [isSending, setSending] = useState(false)
   const [txError, setTxError] = useState('')
   const [txResult, setTxResult] = useState<TransactionReceipt | null>(null)
@@ -39,14 +29,32 @@ const SendOne = observer(() => {
   const [amountOne, setAmountOne] = useState(urlParams.get('amount') ||  '')
   const [gasPrice, setGasPrice] = useState('0')
 
+  const getGasPrice = async () => {
+    const web3 = new Web3(config.rpcUrl)
+    const gasPrice = await web3.eth.getGasPrice();
+    return +gasPrice * GasLimit
+  }
+
+  const onMaxAmountClicked = async () => {
+    try {
+      const gasPrice = await getGasPrice()
+      if(authStore.userAccount) {
+        const balance = bn(authStore.userBalance)
+        const availableBalance = bn.max(balance.minus(gasPrice.toString()), 0)
+        const maxAmount = Web3.utils.fromWei(availableBalance.toString(), 'ether')
+        setAmountOne(maxAmount.toString())
+      }
+    } catch (e) {
+      console.error('Cannot check max price', e)
+    }
+  }
+
   useEffect(() => {
     const calculateGasPrice = async () => {
       try {
         if(authStore.userAccount) {
-          const web3 = new Web3(config.rpcUrl)
-          const gasPrice = await web3.eth.getGasPrice();
-          const gasLimit = '21000'
-          setGasPrice((+gasPrice * +gasLimit).toString())
+          const gasPrice = await getGasPrice()
+          setGasPrice(gasPrice.toString())
         }
       } catch (e) {
         console.log('Cannot estimate gas price', e)
@@ -70,9 +78,9 @@ const SendOne = observer(() => {
       const res = await web3.eth.sendTransaction({
         from: userAccount.address,
         to: targetAddress,
-        value: web3.utils.toHex(web3.utils.toWei(amountOne.toString(), 'ether')),
+        value: web3.utils.toHex(web3.utils.toWei(amountOne.toString() || '0', 'ether')),
         gasPrice,
-        gas: web3.utils.toHex(35000),
+        gas: web3.utils.toHex(GasLimit),
       });
       setTxResult(res)
       console.log('Send result:', res)
@@ -84,14 +92,6 @@ const SendOne = observer(() => {
     }
   }
 
-  const onChangeTotp = (value: number | null) => {
-    const token = (value || '0').toString()
-    if(token === authStore.currentTotp) {
-      setTotpConfirmed(true)
-      authStore.saveTotpToken(token)
-    }
-  }
-
   let content = null
 
   if(!authStore.userAccount) {
@@ -99,8 +99,7 @@ const SendOne = observer(() => {
       No user account found
     </Box>
 
-    return <Box pad={'16px'} gap={'16px'}>
-      <Menu />
+    return <Box gap={'16px'}>
       <Box>
         {content}
       </Box>
@@ -108,7 +107,7 @@ const SendOne = observer(() => {
   }
 
   let errorMessage = ''
-  const userBalanceWei = bn(Web3.utils.toWei(authStore.userBalance.toString(), 'ether'))
+  const userBalanceWei = bn(authStore.userBalance.toString())
   const amountWei = bn(Web3.utils.toWei((amountOne || '0').toString(), 'ether'))
 
   if(targetAddress && amountOne && amountWei.plus(gasPrice).gt(userBalanceWei)) {
@@ -132,12 +131,16 @@ const SendOne = observer(() => {
           value={targetAddress}
           onChange={(e) => setTargetAddress(e.target.value)}
         />
-        <InputNumber
-          placeholder={'Amount'}
-          addonAfter={<Box>ONE</Box>}
-          value={amountOne}
-          onChange={(value) => setAmountOne(value || '')}
-        />
+        <Box>
+          <InputNumber
+            placeholder={'ONE amount'}
+            value={amountOne}
+            style={{ width: '50%' }}
+            min={'0'}
+            addonAfter={<Box onClick={onMaxAmountClicked}>Max</Box>}
+            onChange={(value) => setAmountOne(value || '')}
+          />
+        </Box>
         {errorMessage &&
           <Text type={'danger'}>{errorMessage}</Text>
         }
@@ -155,34 +158,21 @@ const SendOne = observer(() => {
 
   if(currentStep === 'confirm') {
     content = <Box>
-      <Box width={'100px'}>
+      <AccountInfo />
+      <Divider />
+      <Box width={'80px'}>
         <Button icon={<LeftOutlined />} onClick={() => setCurrentStep('edit')}>Edit</Button>
       </Box>
-      <Box margin={{ top: '32px' }}>
+      <Box margin={{ top: '16px' }}>
         <Text type={'secondary'}>Sending ONE</Text>
       </Box>
       <Box>
-        <Text style={{ fontSize: '26px' }}>{amountOne}</Text>
+        <Text style={{ fontSize: '28px' }}>{amountOne}</Text>
       </Box>
-      <Box direction={'row'} margin={{ top: '8px' }} align={'center'} gap={'24px'}>
-        <Text style={{ fontSize: '20px' }}>{cutAddress(authStore.userAccount.address)}</Text>
+      <Box width={'100%'} direction={'row'} margin={{ top: '8px' }} justify={'between'} align={'center'}>
+        <Text style={{ fontSize: '18px' }} copyable={{ text: authStore.userAccount.address }}>{cutAddress(authStore.userAccount.address)}</Text>
         <ArrowRightOutlined style={{ color: '#A9A9A9' }} />
-        <Text style={{ fontSize: '20px' }}>{cutAddress(targetAddress)}</Text>
-      </Box>
-      <Box align={'center'} margin={{ top: '32px' }} gap={'8px'}>
-        <Box style={{ position: 'relative' }}>
-          <TOTPInput disabled={isTotpConfirmed} onChange={onChangeTotp} />
-          {isTotpConfirmed &&
-              <Box style={{ position: 'absolute', left: '-32px', top: '18px' }}>
-                  <CheckOutlined style={{ color: '#52c41a' }} />
-              </Box>
-          }
-        </Box>
-        {!isTotpConfirmed &&
-            <Text type={'secondary'}>
-                Enter 6-digit code from the Authenticator app
-            </Text>
-        }
+        <Text style={{ fontSize: '18px' }} copyable={{ text: targetAddress }}>{cutAddress(targetAddress)}</Text>
       </Box>
       {!txResult &&
           <Box margin={{ top: '32px' }}>
@@ -204,8 +194,8 @@ const SendOne = observer(() => {
             <Text type={'danger'}>{errorMessage}</Text>
         }
         {txResult &&
-            <Box>
-                <Text>Transaction completed. Show on the Explorer:</Text>
+            <Box margin={{ top: '32px' }}>
+                <Text style={{ fontSize: '18px' }}>Transaction successfully sent</Text>
                 <Link href={`https://explorer.harmony.one/tx/${txResult.transactionHash}`} target="_blank">
                   {txResult.transactionHash}
                 </Link>
@@ -215,8 +205,7 @@ const SendOne = observer(() => {
     </Box>
   }
 
-  return <Box pad={'16px'} gap={'16px'}>
-    <Menu />
+  return <Box gap={'16px'}>
     <Box>
       {content}
     </Box>
