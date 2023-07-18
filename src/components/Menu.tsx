@@ -7,8 +7,8 @@ export const AppMenu = () => {
   const { pathname } = useLocation()
 
   return <Breadcrumb items={[{
-    title: <Button size={'small'} type={!pathname.includes('send') ? 'link' : 'text'} onClick={() => navigate('/')}>Account</Button>
+    title: <Button size={'small'} type={pathname.includes('send') ? 'link' : 'text'} onClick={() => navigate('/')}>Account</Button>
   }, {
-    title: <Button size={'small'} type={pathname.includes('send') ? 'link' : 'text'} onClick={() => navigate('/send')}>Send ONE</Button>
+    title: <Button size={'small'} type={!pathname.includes('send') ? 'link' : 'text'} onClick={() => navigate('/send')}>Send ONE</Button>
   }]} />;
 }
