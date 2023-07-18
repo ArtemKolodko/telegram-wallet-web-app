@@ -39,7 +39,7 @@ export const UserAccount = observer(() => {
       <Divider />
       <Box gap={'16px'}>
         <Button type={'primary'} onClick={onSendClicked}>Send ONE</Button>
-        <Button onClick={() => setPrivateKeyModalOpened(true)}>Export private key</Button>
+        <Button onClick={() => setPrivateKeyModalOpened(true)}>Export account</Button>
         <Button onClick={() => setImportModalOpened(true)}>Import account</Button>
         <Box>
           <Modal title="Private key" open={isPrivateKeyModalOpened} onOk={() => setPrivateKeyModalOpened(false)} onCancel={() => setPrivateKeyModalOpened(false)}>
