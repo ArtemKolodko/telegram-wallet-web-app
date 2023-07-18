@@ -23,7 +23,7 @@ export class AuthStore {
         const web3 = new Web3(config.rpcUrl)
         const value = await web3.eth.getBalance(this.userAccount.address)
         runInAction(() => {
-          this.userBalance = Web3.utils.fromWei(value, 'ether')
+          this.userBalance = value // Web3.utils.fromWei(value, 'ether')
         })
       }
     } catch(e) {

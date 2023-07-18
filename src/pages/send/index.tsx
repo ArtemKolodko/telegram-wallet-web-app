@@ -12,6 +12,8 @@ import {ArrowRightOutlined, LeftOutlined} from '@ant-design/icons';
 import {cutAddress} from "../../utils";
 const { Text, Link } = Typography
 
+const GasLimit = 21000
+
 const SendOne = observer(() => {
   const { authStore } = useStores()
 
@@ -27,14 +29,32 @@ const SendOne = observer(() => {
   const [amountOne, setAmountOne] = useState(urlParams.get('amount') ||  '')
   const [gasPrice, setGasPrice] = useState('0')
 
+  const getGasPrice = async () => {
+    const web3 = new Web3(config.rpcUrl)
+    const gasPrice = await web3.eth.getGasPrice();
+    return +gasPrice * GasLimit
+  }
+
+  const onMaxAmountClicked = async () => {
+    try {
+      const gasPrice = await getGasPrice()
+      if(authStore.userAccount) {
+        const balance = bn(authStore.userBalance)
+        const availableBalance = bn.max(balance.minus(gasPrice.toString()), 0)
+        const maxAmount = Web3.utils.fromWei(availableBalance.toString(), 'ether')
+        setAmountOne(maxAmount.toString())
+      }
+    } catch (e) {
+      console.error('Cannot check max price', e)
+    }
+  }
+
   useEffect(() => {
     const calculateGasPrice = async () => {
       try {
         if(authStore.userAccount) {
-          const web3 = new Web3(config.rpcUrl)
-          const gasPrice = await web3.eth.getGasPrice();
-          const gasLimit = '21000'
-          setGasPrice((+gasPrice * +gasLimit).toString())
+          const gasPrice = await getGasPrice()
+          setGasPrice(gasPrice.toString())
         }
       } catch (e) {
         console.log('Cannot estimate gas price', e)
@@ -58,9 +78,9 @@ const SendOne = observer(() => {
       const res = await web3.eth.sendTransaction({
         from: userAccount.address,
         to: targetAddress,
-        value: web3.utils.toHex(web3.utils.toWei(amountOne.toString(), 'ether')),
+        value: web3.utils.toHex(web3.utils.toWei(amountOne.toString() || '0', 'ether')),
         gasPrice,
-        gas: web3.utils.toHex(35000),
+        gas: web3.utils.toHex(GasLimit),
       });
       setTxResult(res)
       console.log('Send result:', res)
@@ -87,7 +107,7 @@ const SendOne = observer(() => {
   }
 
   let errorMessage = ''
-  const userBalanceWei = bn(Web3.utils.toWei(authStore.userBalance.toString(), 'ether'))
+  const userBalanceWei = bn(authStore.userBalance.toString())
   const amountWei = bn(Web3.utils.toWei((amountOne || '0').toString(), 'ether'))
 
   if(targetAddress && amountOne && amountWei.plus(gasPrice).gt(userBalanceWei)) {
@@ -116,6 +136,8 @@ const SendOne = observer(() => {
             placeholder={'ONE amount'}
             value={amountOne}
             style={{ width: '50%' }}
+            min={'0'}
+            addonAfter={<Box onClick={onMaxAmountClicked}>Max</Box>}
             onChange={(value) => setAmountOne(value || '')}
           />
         </Box>
@@ -136,10 +158,12 @@ const SendOne = observer(() => {
 
   if(currentStep === 'confirm') {
     content = <Box>
-      <Box width={'100px'}>
+      <AccountInfo />
+      <Divider />
+      <Box width={'80px'}>
         <Button icon={<LeftOutlined />} onClick={() => setCurrentStep('edit')}>Edit</Button>
       </Box>
-      <Box margin={{ top: '32px' }}>
+      <Box margin={{ top: '16px' }}>
         <Text type={'secondary'}>Sending ONE</Text>
       </Box>
       <Box>
