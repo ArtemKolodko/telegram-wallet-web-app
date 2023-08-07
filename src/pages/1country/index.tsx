@@ -3,6 +3,7 @@ import {Box} from "grommet";
 import {Button, Badge, Card, Typography, Spin} from 'antd'
 import {useStores} from "../../stores/useStores";
 import {DcDomainInfo} from "../../types";
+import {createDomain, genNFT, relayerRegister} from "../../api/1country";
 
 export const OneCountry = () => {
   const { authStore } = useStores()
@@ -21,23 +22,25 @@ export const OneCountry = () => {
   const [txError, setTxError] = useState('')
   const [txHash, setTxHash] = useState('')
 
-  useEffect(() => {
-    const loadDomainInfo = async () => {
-      try {
-        const priceData = await authStore.dcGetPrice(domainName)
-        const available = await authStore.dcIsAvailable(domainName)
-        const info = await authStore.dcDomainInfo(domainName)
-        setAvailable(available)
-        setPrice(priceData)
-        setDomainInfo(info)
-      } catch (e) {
-        console.error('Cannot load domain data', e)
-      }
+  const loadDomainInfo = async () => {
+    try {
+      const priceData = await authStore.dcGetPrice(domainName)
+      const available = await authStore.dcIsAvailable(domainName)
+      const info = await authStore.dcDomainInfo(domainName)
+      setAvailable(available)
+      setPrice(priceData)
+      setDomainInfo(info)
+    } catch (e) {
+      console.error('Cannot load domain data', e)
     }
+  }
+
+  useEffect(() => {
     loadDomainInfo()
   }, [authStore, domainName]);
 
   const rentDomain = async () => {
+    setProgressStatus('Registering domain...')
     const commitTx = await authStore.dcCommit(domainName, authStore.userAccount.address, secret)
     console.log('commitTx', commitTx)
     await new Promise(resolve => setTimeout(resolve, 5000))
@@ -49,6 +52,14 @@ export const OneCountry = () => {
     )
     console.log('registerTx', registerTx)
     setTxHash(registerTx.transactionHash)
+    const { transactionHash } = registerTx
+    setProgressStatus('Domain registered, generating NFT...')
+    await createDomain(domainName, transactionHash)
+    await relayerRegister(domainName, transactionHash, authStore.userAccount.address)
+    const nftRes = await genNFT(domainName)
+    console.log('nft result:', nftRes)
+    await loadDomainInfo()
+    setProgressStatus('')
   }
 
   const onSendClicked = async () => {
@@ -78,7 +89,7 @@ export const OneCountry = () => {
     badgeStatusText = isAvailable ? 'Available' : 'Unavailable';
     if(domainInfo) {
       if(domainInfo.owner === authStore.userAccount.address) {
-        badgeStatusText = 'Rented'
+        badgeStatusText = 'You the owner'
       }
     }
   }
@@ -127,9 +138,9 @@ export const OneCountry = () => {
               <Typography.Text type={'danger'}>Error: {txError}</Typography.Text>
           </Box>
       }
-      {txHash &&
+      {(txHash && isOwner) &&
           <Box margin={{ top: 'large' }}>
-              <Typography.Text style={{ fontSize: '18px' }}>Transaction successfully sent</Typography.Text>
+              <Typography.Text>Domain registered</Typography.Text>
               <Typography.Link href={`https://explorer.harmony.one/tx/${txHash}`} target="_blank">
                 {txHash}
               </Typography.Link>

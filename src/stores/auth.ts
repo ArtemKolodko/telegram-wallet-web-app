@@ -118,15 +118,15 @@ export class AuthStore {
   }
 
   public async dcDomainInfo(name: string): Promise<DcDomainInfo> {
-    const [owner, rentTime, expirationTime] = await Promise.all([
+    const [owner, rentTime, expirationTime] = await Promise.allSettled([
       this.dcContract.methods.ownerOf(name).call(),
       this.dcContract.methods.duration().call(),
       this.dcContract.methods.nameExpires(name).call()
     ])
     return {
-      owner,
-      rentTime,
-      expirationTime
+      owner: owner.status === 'fulfilled' ? owner.value : '',
+      rentTime: rentTime.status === 'fulfilled' ? rentTime.value : 0,
+      expirationTime: expirationTime.status === 'fulfilled' ? expirationTime.value : 0,
     }
   }
 }
