@@ -39,26 +39,33 @@ export const UserAccount = observer(() => {
       <Divider />
       <Box gap={'16px'}>
         <Button type={'primary'} onClick={onSendClicked}>Send ONE</Button>
-        <Button onClick={() => setPrivateKeyModalOpened(true)}>Export account</Button>
-        <Button onClick={() => setImportModalOpened(true)}>Import account</Button>
-        <Box>
-          <Modal title="Private key" open={isPrivateKeyModalOpened} onOk={() => setPrivateKeyModalOpened(false)} onCancel={() => setPrivateKeyModalOpened(false)}>
-            <Text copyable={true}>
-              {authStore.userAccount.privateKey}
-            </Text>
-          </Modal>
-          <Modal
-            title="Import account"
-            open={isImportModalOpened}
-            okText={'Import'}
-            okButtonProps={{ disabled: !importedAccount, danger: true }}
-            onOk={onImportClicked}
-            onCancel={() => setImportModalOpened(false)}
-          >
-            <ImportAccount
-              onUpdate={(account) => setImportedAccount(account)}
-            />
-          </Modal>
+        <Button onClick={() => navigate('/1country')}>Register domain</Button>
+        <Box margin={{ top: '16px' }} gap={'16px'}>
+          <Button onClick={() => setPrivateKeyModalOpened(true)}>
+            Export account
+          </Button>
+          <Button onClick={() => setImportModalOpened(true)}>
+            Import account
+          </Button>
+          <Box>
+            <Modal title="Private key" open={isPrivateKeyModalOpened} onOk={() => setPrivateKeyModalOpened(false)} onCancel={() => setPrivateKeyModalOpened(false)}>
+              <Text copyable={true}>
+                {authStore.userAccount.privateKey}
+              </Text>
+            </Modal>
+            <Modal
+              title="Import account"
+              open={isImportModalOpened}
+              okText={'Import'}
+              okButtonProps={{ disabled: !importedAccount, danger: true }}
+              onOk={onImportClicked}
+              onCancel={() => setImportModalOpened(false)}
+            >
+              <ImportAccount
+                onUpdate={(account) => setImportedAccount(account)}
+              />
+            </Modal>
+          </Box>
         </Box>
       </Box>
     </Box>

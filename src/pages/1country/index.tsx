@@ -5,12 +5,20 @@ import {useStores} from "../../stores/useStores";
 import {DcDomainInfo} from "../../types";
 import {createDomain, genNFT, relayerRegister} from "../../api/1country";
 
+const getRandomInRange = (min: number, max: number) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+const defaultDomainName = 'mydomain' + getRandomInRange(1, 100)
+
 export const OneCountry = () => {
   const { authStore } = useStores()
 
   const urlParams = new URLSearchParams(window.location.search);
   const opType = urlParams.get('opType') || 'rent'
-  const domainName = (urlParams.get('domainName') || 'oscar1').toLowerCase()
+  const domainName = (urlParams.get('domainName') || defaultDomainName).toLowerCase()
   const opName = opType === 'rent' ? 'Rent' : 'Renew'
 
   const [inProgress, setInProgress] = useState(false)
