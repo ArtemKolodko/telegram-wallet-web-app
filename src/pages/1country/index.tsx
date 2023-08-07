@@ -4,7 +4,7 @@ import {Button, Badge, Card, Typography, Spin, Modal, Input} from 'antd'
 import {EditOutlined} from '@ant-design/icons';
 import {useStores} from "../../stores/useStores";
 import {DcDomainInfo} from "../../types";
-import {createDomain, genNFT, relayerRegister} from "../../api/1country";
+import {createDomain, genNFT, relayerCheckDomain, relayerRegister} from "../../api/1country";
 
 const getRandomInRange = (min: number, max: number) => {
   min = Math.ceil(min);
@@ -24,27 +24,36 @@ export const OneCountry = () => {
 
   const [domainName, setDomainName] = useState((urlParams.get('domainName') || defaultDomainName).toLowerCase())
   const [tempDomainName, setTempDomainName] = useState((urlParams.get('domainName') || defaultDomainName).toLowerCase())
-  const [inProgress, setInProgress] = useState(false)
   const [progressStatus, setProgressStatus] = useState('')
   const [domainInfo, setDomainInfo] = useState<DcDomainInfo>()
-  const [isAvailable, setAvailable] = useState<boolean | undefined>()
   const [price, setPrice] = useState('')
   const [txError, setTxError] = useState('')
   const [txHash, setTxHash] = useState('')
   const [isEditingOpen, setEditingOpen] = useState(false)
+  const [isAvailable, setAvailable] = useState<boolean | undefined>()
+  const [inProgress, setInProgress] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const loadDomainInfo = async () => {
     setTxError('')
+    setIsLoading(true)
     try {
       console.log('loadDomainInfo', domainName)
       const priceData = await authStore.dcGetPrice(domainName)
-      const available = await authStore.dcIsAvailable(domainName)
+      let available = await authStore.dcIsAvailable(domainName)
       const info = await authStore.dcDomainInfo(domainName)
+      if(available) {
+        const relayedData = await relayerCheckDomain(domainName)
+        console.log('relayedData', relayedData)
+        available = relayedData.isAvailable
+      }
       setAvailable(available)
       setPrice(priceData)
       setDomainInfo(info)
     } catch (e) {
       console.error('Cannot load domain data', e)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -107,6 +116,12 @@ export const OneCountry = () => {
     }
   }
 
+  if(typeof isAvailable === 'undefined') {
+    return <Box margin={{ top: 'large' }}>
+      <Spin size={'large'} />
+    </Box>
+  }
+
   const CardTitle =  <Box gap={'8px'} align={'center'} direction={'row'}>
     <Typography.Link href={`https://${domainName}.country`} target="_blank">
       {domainName}.country
@@ -114,17 +129,11 @@ export const OneCountry = () => {
     <EditOutlined onClick={() => setEditingOpen(true)} />
   </Box>
 
-  if(typeof isAvailable === 'undefined') {
-    return <Box margin={{ top: 'large' }}>
-      <Spin size={'large'} />
-    </Box>
-  }
-
   return <Box>
     <Box margin={{ top: 'large' }}>
       <Badge.Ribbon text={badgeStatusText} color={badgeColor}>
         <Card title={CardTitle} size="default">
-          <Box>
+          <Box style={{ opacity: isLoading ? 0.4 : 'unset' }}>
             <Typography.Text type={'secondary'} style={{ fontSize: '18px', fontWeight: 400 }}>
               {opName} price
             </Typography.Text>
@@ -144,7 +153,7 @@ export const OneCountry = () => {
       <Button
         type={'primary'}
         loading={inProgress}
-        disabled={!isAvailable}
+        disabled={!isAvailable || isLoading}
         onClick={onSendClicked}
       >
         {progressStatus || opName}
@@ -169,8 +178,8 @@ export const OneCountry = () => {
       onOk={() => {
         if(tempDomainName !== domainName) {
           setDomainName(tempDomainName.toLowerCase())
-          setEditingOpen(false)
         }
+        setEditingOpen(false)
       }}
       onCancel={() => setEditingOpen(false)}
     >

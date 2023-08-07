@@ -19,6 +19,22 @@ export const relayerRegister = async (domain: string, txHash: string, address: s
   return data
 }
 
+export interface RelayerDomainInfo {
+  isAvailable: boolean
+  isRegistered: boolean
+  isReserved: boolean
+  regPrice: number
+  renewPrice: number
+  transferPrice: number
+}
+
+export const relayerCheckDomain = async (sld: string): Promise<RelayerDomainInfo> => {
+  const { data } = await axios.post(`${config.dcRelayerUrl}/check-domain/`, {
+    sld
+  })
+  return data
+}
+
 export const genNFT = async (domain: string) => {
   const { data } = await axios.post(`${config.dcRelayerUrl}/gen/`, {
     domain: `${domain.toLowerCase()}.country`,
