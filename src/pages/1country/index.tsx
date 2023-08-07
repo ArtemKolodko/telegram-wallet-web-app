@@ -111,7 +111,7 @@ export const OneCountry = () => {
     badgeStatusText = isAvailable ? 'Available' : 'Unavailable';
     if(domainInfo) {
       if(domainInfo.owner === authStore.userAccount.address) {
-        badgeStatusText = 'You the owner'
+        badgeStatusText = 'You are the owner'
       }
     }
   }
