@@ -185,6 +185,7 @@ export const OneCountry = () => {
     >
       <Input
         value={tempDomainName}
+        allowClear
         onChange={(e) => setTempDomainName(e.target.value || '')}
       />
     </Modal>
