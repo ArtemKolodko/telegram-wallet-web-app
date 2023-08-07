@@ -168,7 +168,7 @@ export const OneCountry = () => {
       open={isEditingOpen}
       onOk={() => {
         if(tempDomainName !== domainName) {
-          setDomainName(tempDomainName)
+          setDomainName(tempDomainName.toLowerCase())
           setEditingOpen(false)
         }
       }}
@@ -176,7 +176,7 @@ export const OneCountry = () => {
     >
       <Input
         value={tempDomainName}
-        onChange={(e) => setTempDomainName(e.target.value)}
+        onChange={(e) => setTempDomainName(e.target.value || '')}
       />
     </Modal>
   </Box>
