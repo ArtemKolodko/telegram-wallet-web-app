@@ -5,6 +5,7 @@ import {CreateWallet} from "./pages/create-wallet/CreateWallet";
 import SendOne from "./pages/send";
 import {Box} from "grommet";
 import {AppMenu} from "./components/Menu";
+import {OneCountry} from "./pages/1country";
 
 const AppLayout = () => {
   return <Box pad={'16px'}>
@@ -22,6 +23,7 @@ export const AppRoutes = () => {
         <Route index path={'/'} element={<UserAccount />}/>
         <Route path={'create-wallet'} element={<CreateWallet />} />
         <Route path={'send'} element={<SendOne />} />
+        <Route path={'1country'} element={<OneCountry />} />
       </Route>
     </Routes>
   </Box>
