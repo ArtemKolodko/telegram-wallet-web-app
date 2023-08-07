@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {Box} from "grommet";
-import {Button, Badge, Card, Typography, Spin} from 'antd'
+import {Button, Badge, Card, Typography, Spin, Modal, Input} from 'antd'
+import {EditOutlined} from '@ant-design/icons';
 import {useStores} from "../../stores/useStores";
 import {DcDomainInfo} from "../../types";
 import {createDomain, genNFT, relayerRegister} from "../../api/1country";
@@ -12,26 +13,30 @@ const getRandomInRange = (min: number, max: number) => {
 }
 
 const defaultDomainName = 'mydomain' + getRandomInRange(1, 100)
+const secret = Math.random().toString(26).slice(2)
 
 export const OneCountry = () => {
   const { authStore } = useStores()
 
   const urlParams = new URLSearchParams(window.location.search);
   const opType = urlParams.get('opType') || 'rent'
-  const domainName = (urlParams.get('domainName') || defaultDomainName).toLowerCase()
   const opName = opType === 'rent' ? 'Rent' : 'Renew'
 
+  const [domainName, setDomainName] = useState((urlParams.get('domainName') || defaultDomainName).toLowerCase())
+  const [tempDomainName, setTempDomainName] = useState((urlParams.get('domainName') || defaultDomainName).toLowerCase())
   const [inProgress, setInProgress] = useState(false)
   const [progressStatus, setProgressStatus] = useState('')
-  const [secret] = useState<string>(Math.random().toString(26).slice(2))
   const [domainInfo, setDomainInfo] = useState<DcDomainInfo>()
   const [isAvailable, setAvailable] = useState<boolean | undefined>()
   const [price, setPrice] = useState('')
   const [txError, setTxError] = useState('')
   const [txHash, setTxHash] = useState('')
+  const [isEditingOpen, setEditingOpen] = useState(false)
 
   const loadDomainInfo = async () => {
+    setTxError('')
     try {
+      console.log('loadDomainInfo', domainName)
       const priceData = await authStore.dcGetPrice(domainName)
       const available = await authStore.dcIsAvailable(domainName)
       const info = await authStore.dcDomainInfo(domainName)
@@ -102,9 +107,12 @@ export const OneCountry = () => {
     }
   }
 
-  const CardTitle =  <Typography.Link href={`https://${domainName}.country`} target="_blank">
-    {domainName}.country
-  </Typography.Link>
+  const CardTitle =  <Box gap={'8px'} align={'center'} direction={'row'}>
+    <Typography.Link href={`https://${domainName}.country`} target="_blank">
+      {domainName}.country
+    </Typography.Link>
+    <EditOutlined onClick={() => setEditingOpen(true)} />
+  </Box>
 
   if(typeof isAvailable === 'undefined') {
     return <Box margin={{ top: 'large' }}>
@@ -155,5 +163,21 @@ export const OneCountry = () => {
           </Box>
       }
     </Box>
+    <Modal
+      title="Domain name"
+      open={isEditingOpen}
+      onOk={() => {
+        if(tempDomainName !== domainName) {
+          setDomainName(tempDomainName)
+          setEditingOpen(false)
+        }
+      }}
+      onCancel={() => setEditingOpen(false)}
+    >
+      <Input
+        value={tempDomainName}
+        onChange={(e) => setTempDomainName(e.target.value)}
+      />
+    </Modal>
   </Box>
 }
