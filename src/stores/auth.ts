@@ -22,9 +22,7 @@ export class AuthStore {
 
     this.dcContract = new this.web3.eth.Contract(
       DCAbi,
-      config.dcContractAddress,
-      // @ts-ignore
-      account
+      config.dcContractAddress
     );
 
     this.initStore()
