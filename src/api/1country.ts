@@ -41,3 +41,15 @@ export const genNFT = async (domain: string) => {
   })
   return data
 }
+
+export interface RenewResponse {
+  renewed: boolean
+  error: string
+}
+
+export const renewMetadata = async (domain: string): Promise<RenewResponse> => {
+  const { data } = await axios.post(`${config.dcRelayerUrl}/renew-metadata/`, {
+    domain: `${domain.toLowerCase()}.country`,
+  })
+  return data
+}

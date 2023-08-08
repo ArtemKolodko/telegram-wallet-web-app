@@ -1,10 +1,13 @@
 import React, {useEffect, useState} from 'react'
 import {Box} from "grommet";
+import moment from 'moment'
 import {Button, Badge, Card, Typography, Spin, Modal, Input} from 'antd'
 import {EditOutlined} from '@ant-design/icons';
 import {useStores} from "../../stores/useStores";
 import {DcDomainInfo} from "../../types";
-import {createDomain, genNFT, relayerCheckDomain, relayerRegister} from "../../api/1country";
+import {createDomain, genNFT, relayerCheckDomain, relayerRegister, renewMetadata} from "../../api/1country";
+import * as utils from "./utils";
+import {saveLastDomainName} from "./utils";
 
 const getRandomInRange = (min: number, max: number) => {
   min = Math.ceil(min);
@@ -12,17 +15,18 @@ const getRandomInRange = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const defaultDomainName = 'mydomain' + getRandomInRange(1, 100)
+const lastUsedDomainName = utils.getLastDomainName()
+const defaultDomainName = lastUsedDomainName || 'mydomain' + getRandomInRange(1, 100)
 const secret = Math.random().toString(26).slice(2)
 
 export const OneCountry = () => {
   const { authStore } = useStores()
 
   const urlParams = new URLSearchParams(window.location.search);
-  const opType = urlParams.get('opType') || 'rent'
-  const opName = opType === 'rent' ? 'Rent' : 'Renew'
 
-  const [domainName, setDomainName] = useState((urlParams.get('domainName') || defaultDomainName).toLowerCase())
+  const [domainName, setDomainName] = useState(
+    (urlParams.get('domainName') || defaultDomainName).toLowerCase()
+  )
   const [tempDomainName, setTempDomainName] = useState((urlParams.get('domainName') || defaultDomainName).toLowerCase())
   const [progressStatus, setProgressStatus] = useState('')
   const [domainInfo, setDomainInfo] = useState<DcDomainInfo>()
@@ -34,6 +38,12 @@ export const OneCountry = () => {
   const [inProgress, setInProgress] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
+  useEffect(() => {
+    if(domainName !== lastUsedDomainName) {
+      saveLastDomainName(domainName)
+    }
+  }, [domainName]);
+
   const loadDomainInfo = async () => {
     setTxError('')
     setIsLoading(true)
@@ -42,6 +52,7 @@ export const OneCountry = () => {
       const priceData = await authStore.dcGetPrice(domainName)
       let available = await authStore.dcIsAvailable(domainName)
       const info = await authStore.dcDomainInfo(domainName)
+      console.log('dc info', info, 'available', available)
       if(available) {
         const relayedData = await relayerCheckDomain(domainName)
         console.log('relayedData', relayedData)
@@ -60,6 +71,22 @@ export const OneCountry = () => {
   useEffect(() => {
     loadDomainInfo()
   }, [authStore, domainName]);
+
+  const renewDomain = async () => {
+    setProgressStatus('Renewing domain...')
+    const renewTx = await authStore.dcRenew(domainName, price)
+    console.log('renewTx', renewTx)
+    setTxHash(renewTx.transactionHash)
+
+    setProgressStatus('Waiting for confirmation')
+    await new Promise(resolve => setTimeout(resolve, 4000))
+
+    setProgressStatus('Updating NFT metadata...')
+    const nftResult = await renewMetadata(domainName)
+    console.log('NFT result:', nftResult)
+    await loadDomainInfo()
+    setProgressStatus('')
+  }
 
   const rentDomain = async () => {
     setProgressStatus('Registering domain...')
@@ -84,12 +111,16 @@ export const OneCountry = () => {
     setProgressStatus('')
   }
 
-  const onSendClicked = async () => {
+  const onSendClicked = async (opType: 'rent' | 'renew') => {
     setInProgress(true)
     setTxError('')
     setProgressStatus('')
     try {
-      await rentDomain()
+      if(opType === 'rent') {
+        await rentDomain()
+      } else if(opType === 'renew') {
+        await renewDomain()
+      }
     } catch (e) {
       console.error('Cannot send tx', e)
       setTxError((e as Error).message)
@@ -133,9 +164,19 @@ export const OneCountry = () => {
     <Box margin={{ top: 'large' }}>
       <Badge.Ribbon text={badgeStatusText} color={badgeColor}>
         <Card title={CardTitle} size="default">
+          {(isOwner && domainInfo) &&
+              <Box margin={{ bottom: '16px' }} style={{ opacity: isLoading ? 0.4 : 'unset' }}>
+                  <Typography.Text type={'secondary'} style={{ fontSize: '18px', fontWeight: 400 }}>
+                      Rented until
+                  </Typography.Text>
+                  <Typography.Text style={{ fontSize: '22px' }}>
+                    {moment(domainInfo.expirationTime * 1000).format('MMMM Do YYYY')}
+                  </Typography.Text>
+              </Box>
+          }
           <Box style={{ opacity: isLoading ? 0.4 : 'unset' }}>
             <Typography.Text type={'secondary'} style={{ fontSize: '18px', fontWeight: 400 }}>
-              {opName} price
+              {isOwner ? 'Renew' : 'Rent'} price
             </Typography.Text>
             <Box direction={'row'} gap={'8px'}>
               <Typography.Text style={{ fontSize: '22px' }}>
@@ -150,14 +191,27 @@ export const OneCountry = () => {
       </Badge.Ribbon>
     </Box>
     <Box margin={{ top: 'large' }}>
-      <Button
-        type={'primary'}
-        loading={inProgress}
-        disabled={!isAvailable || isLoading}
-        onClick={onSendClicked}
-      >
-        {progressStatus || opName}
-      </Button>
+      {!isOwner &&
+          <Button
+              type={'primary'}
+              loading={inProgress}
+              disabled={!isAvailable || isLoading}
+              onClick={() => onSendClicked('rent')}
+          >
+            {progressStatus || 'Rent'}
+          </Button>
+      }
+      {isOwner &&
+          <Button
+              type={'primary'}
+              loading={inProgress}
+              disabled={isLoading || !isOwner}
+              onClick={() => onSendClicked('renew')}
+
+          >
+            {progressStatus || 'Renew'}
+          </Button>
+      }
       {txError &&
           <Box margin={{ top: 'small' }}>
               <Typography.Text type={'danger'}>Error: {txError}</Typography.Text>
@@ -165,7 +219,7 @@ export const OneCountry = () => {
       }
       {(txHash && isOwner) &&
           <Box margin={{ top: 'large' }}>
-              <Typography.Text>Domain registered</Typography.Text>
+              <Typography.Text type={'secondary'}>Transaction hash:</Typography.Text>
               <Typography.Link href={`https://explorer.harmony.one/tx/${txHash}`} target="_blank">
                 {txHash}
               </Typography.Link>

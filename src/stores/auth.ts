@@ -103,6 +103,19 @@ export class AuthStore {
     });
   }
 
+  public async dcRenew(name: string, amount: string): Promise<TransactionReceipt> {
+    const tx = this.dcContract.methods.renew(name);
+    const gas = await tx.estimateGas({
+      from: this.userAccount.address,
+      value: amount
+    });
+    return await tx.send({
+      from: this.userAccount.address,
+      gas,
+      value: amount
+    });
+  }
+
   public async dcGetPrice(name: string) {
     return await this.dcContract.methods
       .getPrice(name)
